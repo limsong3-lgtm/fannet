@@ -438,11 +438,12 @@ window.FN_LIVE_INSTALL = function (A) {
     let MAP = {}, RE = null, SIG = "";
     function buildMap() {
       const m = {};
-      const add = (name, v) => { if (name && typeof name === "string" && name.length > 3 && !m[name]) m[name] = v; };
+      // Korean names are often just 3 letters (박주영), so the length floor only applies to Latin names
+      const add = (name, v) => { if (name && typeof name === "string" && (name.length > 3 || (/[가-힣]/.test(name) && name.length >= 2)) && !m[name]) m[name] = v; };
       (A.ROSTER || []).forEach(f => add(f.n, f.code ? { code: f.code } : { demo: true, rec: `${f.w}-${f.l}-${f.dr}`, ko: f.ko, div: A.DIV && A.DIV[f.d] ? A.DIV[f.d][0] : "", from: f.cty }));
       [A.FX, A.MFX].forEach(X => X && Object.values(X).forEach(f => f && f.rec && add(f.name, { demo: true, rec: f.rec, ko: f.ko, div: f.div, from: f.from })));
       (DIR.people || []).forEach(x => { if (x.real || x.role !== "Fighter" || !x.rec) return; add(x.name, { demo: true, rec: x.rec, ko: x.ko, div: x.div, from: x.where }); });
-      const sig = Object.keys(m).length + ":" + (A.ROSTER || []).length;
+      const sig = Object.keys(m).join("|");   // names change in place (e.g. a Korean name arrives), so compare the names themselves
       if (sig === SIG) return; SIG = sig; MAP = m;
       const keys = Object.keys(m).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
       RE = keys.length ? new RegExp("(^|[^A-Za-z\u00C0-\u024F가-힣])(" + keys.join("|") + ")(?![A-Za-z\u00C0-\u024F가-힣])") : null;
