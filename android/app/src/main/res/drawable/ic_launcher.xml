@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple launcher icon: white "F" on a navy circle with a red accent -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#1B2B4A" android:pathData="M54,4a50,50 0,1 1,0 100a50,50 0,1 1,0 -100z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M38,30h34v10h-23v10h20v10h-20v18h-11z" />
+    <path android:fillColor="#E11D48" android:pathData="M62,64h10v14h-10z" />
+</vector>

@@ -1,0 +1,432 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fannet Club Player App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+
+/* Layout: phone on the left, explainer on the right (stacks on narrow screens). Phone interior keeps the app's own light look; the stage follows the viewer's theme. */
+:root{
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --stage:#eef0f4;--stage-fg:#18202e;--stage-muted:#4b5566;--stage-line:#d9dde5;--stage-card:#ffffff;--stage-ink-strong:#0f1d33;--stage-accent:#d2102e;
+  --ink:#121a28;--ink-2:#3c4657;--ink-3:#5d6779;--line:#e3e6ec;--fill:#f4f5f8;--white:#ffffff;
+  --red:#d2102e;--red-soft:#fdecef;--green:#0f7a3d;--green-soft:#e6f5ec;--blue:#1d4fd8;--blue-soft:#e9effd;--amber:#a35a00;--amber-soft:#fff3e0;--navy:#0f1d33;--gold:#b8860b;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--stage:#10141c;--stage-fg:#e9edf4;--stage-muted:#a6b0c0;--stage-line:#2a3242;--stage-card:#181e29;--stage-ink-strong:#ffffff;--stage-accent:#ff5a6e;color-scheme:dark}}
+:root[data-theme="dark"]{--stage:#10141c;--stage-fg:#e9edf4;--stage-muted:#a6b0c0;--stage-line:#2a3242;--stage-card:#181e29;--stage-ink-strong:#ffffff;--stage-accent:#ff5a6e;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--stage);color:var(--stage-fg);font:16px/1.45 var(--body)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.side{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:22px}
+.phone-col{flex:0 1 390px;min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+@media (max-width:860px){.phone-col{position:static;margin-inline:auto}}
+
+/* Stage text */
+.eyebrow{font:700 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--stage-muted)}
+.eyebrow b{color:var(--stage-fg)}
+h1{font:700 clamp(36px,5vw,52px)/1 var(--display);margin:6px 0 10px;color:var(--stage-ink-strong);text-wrap:balance;letter-spacing:.01em}
+h1 em{font-style:normal;color:var(--stage-accent)}
+.lede{margin:0;max-width:62ch;color:var(--stage-muted)}
+h2{font:700 13px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--stage-muted);margin:0 0 10px}
+.who{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.who button{all:unset;cursor:pointer;background:var(--stage-card);border:1px solid var(--stage-line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.who button:focus-visible{outline:3px solid var(--stage-accent);outline-offset:2px}
+.who button[aria-pressed="true"]{background:var(--stage-ink-strong);border-color:var(--stage-ink-strong)}
+.who button[aria-pressed="true"] .wn,.who button[aria-pressed="true"] .wd{color:var(--stage)}
+.wn{font-weight:700;color:var(--stage-fg)}
+.wd{font-size:13px;color:var(--stage-muted);line-height:1.35}
+.tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.tag{font:700 10.5px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px}
+.tag.pro{background:#7a1426;color:#fff}.tag.club{background:#12613f;color:#fff}
+.panel{background:var(--stage-card);border:1px solid var(--stage-line);border-radius:16px;padding:16px 18px}
+.cmp{width:100%;border-collapse:collapse;font-size:14.5px}
+.cmp th,.cmp td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--stage-line);vertical-align:top}
+.cmp tr:last-child td{border-bottom:0}
+.cmp th{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--stage-muted)}
+.cmp td:first-child{color:var(--stage-muted);width:28%}
+.same{margin:0;padding-left:18px;display:grid;gap:6px}
+.note{font-size:14px;color:var(--stage-muted);margin:0}
+
+/* Phone */
+.phone{width:390px;max-width:100%;height:800px;background:var(--white);border-radius:48px;border:10px solid #0b0d12;box-shadow:0 30px 60px -20px rgba(10,15,30,.35);position:relative;overflow:hidden;display:flex;flex-direction:column;color:var(--ink);font-size:15px}
+@media (max-width:440px){.phone{height:740px;border-width:7px;border-radius:38px}}
+.status{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font:600 14px var(--body);color:#fff;position:absolute;inset:0 0 auto;z-index:3}
+.notch{position:absolute;left:50%;top:9px;transform:translateX(-50%);width:110px;height:30px;background:#0b0d12;border-radius:20px;z-index:4}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;background:var(--fill)}
+.screen::-webkit-scrollbar{display:none}
+.hdr{padding:52px 16px 16px;color:#fff;position:relative}
+.hdr.pro{background:linear-gradient(160deg,#0f1d33 0%,#1b2b4a 55%,#7a1426 130%)}
+.hdr.club{background:linear-gradient(160deg,#0b3324 0%,#12613f 60%,#2a9a63 130%)}
+.toprow{display:flex;align-items:center;gap:8px}
+.fn-logo-pill{display:inline-flex;align-items:center;background:#fff;border-radius:10px;padding:7px 11px}
+.fn-logo{display:block;height:17px;width:auto}
+.space-badge{font:700 12px var(--display);letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.14);color:#fff}
+.fnid{margin-left:auto;font:600 12px ui-monospace,Menlo,monospace;background:rgba(255,255,255,.14);padding:5px 9px;border-radius:999px;color:#e9edf4}
+.switch{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;background:rgba(0,0,0,.28);border-radius:12px;padding:3px;gap:3px}
+.switch button{all:unset;cursor:pointer;text-align:center;padding:8px 0;border-radius:9px;font:700 15px var(--display);letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.switch button[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.hdr.club .switch button[aria-pressed="true"]{color:#0b3324}
+.switch button:focus-visible{outline:2px solid #fff}
+.hello{margin-top:14px}
+.clubs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+.clubs button{all:unset;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.35);font:600 13px var(--body);color:#fff}
+.clubs button[aria-pressed="true"]{background:#fff;color:#0b3324;border-color:#fff}
+.clubs button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sp{font:700 10.5px var(--body);letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.sp.futsal{background:#e6f5ec;color:#0f7a3d}.sp.pickle{background:#fff3e0;color:#a35a00}
+.clubcard{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.clubcard:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.clubcard .chev{margin-left:auto;color:var(--ink-3);font-size:20px}
+.hello .big{font:700 30px/1.05 var(--display);letter-spacing:.01em}
+.hello .sub{font-size:14px;color:rgba(255,255,255,.82);margin-top:3px}
+.body{padding:14px 14px 22px;display:flex;flex-direction:column;gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+.card h3{margin:0 0 8px;font:700 13px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between;gap:8px}
+.card h3 span{font-weight:600;letter-spacing:0;text-transform:none}
+.feature{background:#0f1d33;color:#fff;border:0}
+.feature h3{color:#a6b0c0}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:6px 0 10px}
+.corner{display:flex;flex-direction:column;gap:2px}
+.corner:last-child{text-align:right}
+.corner .nm{font:700 20px/1.05 var(--display)}
+.corner .rec{font:600 13px var(--body);font-variant-numeric:tabular-nums;color:#c8d0dc}
+.vs .v{font:700 16px var(--display);color:#ff5a6e}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.meta{font-size:13.5px;color:var(--ink-3)}
+.feature .meta{color:#c8d0dc}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:10px;font:700 14px var(--body);border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.btn.solid{background:var(--red);border-color:var(--red);color:#fff}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.btn.ghost-dark{background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+.btn.on{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.btn.off{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0;padding-top:2px}
+.li .main{flex:1;min-width:0}
+.li .t{font-weight:600}
+.li .s{font-size:13px;color:var(--ink-3)}
+.num{font-variant-numeric:tabular-nums}
+.av{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 14px var(--display);color:#fff;letter-spacing:.02em}
+.rank{width:26px;font:700 18px var(--display);color:var(--ink-3);text-align:center;flex:none}
+.pill{font:700 11px var(--body);padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pill.w{background:var(--green-soft);color:var(--green)}.pill.l{background:var(--red-soft);color:var(--red)}
+.pill.d{background:var(--blue-soft);color:var(--blue)}.pill.a{background:var(--amber-soft);color:var(--amber)}
+.pill.g{background:var(--fill);color:var(--ink-2)}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips button{all:unset;cursor:pointer;white-space:nowrap;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;font:600 13px var(--body);color:var(--ink-2)}
+.chips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.stat{background:#fff;border-radius:12px;padding:8px 4px;text-align:center;color:var(--ink)}
+.stat b{display:block;font:700 24px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:11.5px;font-weight:600;color:var(--ink-3)}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:4px 0 10px}
+.score .tm{font:700 18px/1.1 var(--display)}
+.score .tm:last-child{text-align:right}
+.score .sc{font:700 30px var(--display);font-variant-numeric:tabular-nums}
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tbl th{font:700 11px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);text-align:right;padding:4px 3px}
+.tbl th:nth-child(2),.tbl td:nth-child(2){text-align:left}
+.tbl td{padding:7px 3px;border-top:1px solid var(--line);text-align:right}
+.tbl tr.me td{background:var(--green-soft);font-weight:700}
+.bk{display:flex;flex-direction:column;gap:14px}
+.rd{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rd h4{grid-column:1/-1;margin:0;font:700 11px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.rd .meta{grid-column:1/-1}
+.tie{border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:12.5px;background:#fff}
+.tie div{display:flex;justify-content:space-between;gap:6px;padding:5px 8px}
+.tie div+div{border-top:1px solid var(--line)}
+.tie .win{font-weight:700;background:var(--green-soft)}
+.tie .tbd{color:var(--ink-3);font-style:italic}
+.tie small{color:var(--ink-3);font-weight:600;white-space:nowrap}
+.mine{outline:2px solid var(--green);outline-offset:-2px}
+.lock{display:flex;gap:10px;align-items:flex-start;background:var(--blue-soft);color:#1b3a8f;border-radius:12px;padding:10px 12px;font-size:13px}
+.lock svg{flex:none;margin-top:2px}
+.tabs{flex:none;display:flex;border-top:1px solid var(--line);background:#fff;padding:7px 4px 20px}
+.tab{all:unset;cursor:pointer;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 11.5px var(--body);color:var(--ink-3);padding:3px 0;text-align:center}
+.tab svg{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--red)}
+.club-ui .tab[aria-current="page"]{color:var(--green)}
+.tab:focus-visible{outline:2px solid var(--blue);border-radius:8px}
+.toast{position:absolute;left:14px;right:14px;bottom:86px;background:var(--ink);color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;z-index:5;transition:opacity .2s}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+[hidden]{display:none!important}
+.hdr.club.signup{background:linear-gradient(160deg,#0b3324 0%,#12613f 70%,#2a9a63 130%)}
+.steps{display:flex;gap:4px;margin-top:14px}
+.steps i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.25)}
+.steps i.on{background:#fff}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font:700 12px var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.field input,.field select,.field textarea{font:600 16px var(--body);border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;background:#fff;color:var(--ink);width:100%;box-sizing:border-box}
+.field textarea{min-height:110px;resize:vertical;font-weight:500;font-size:15px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid var(--green);outline-offset:1px}
+.hint{font-size:13px;color:var(--ink-3);margin:0}
+.big-opt{all:unset;cursor:pointer;display:flex;align-items:center;gap:14px;border:1.5px solid var(--line);border-radius:16px;padding:14px;background:#fff}
+.big-opt:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.big-opt[aria-pressed="true"]{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green);background:var(--green-soft)}
+.big-opt .ic{width:44px;height:44px;border-radius:12px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;flex:none}
+.big-opt .ic svg{width:24px;height:24px}
+.big-opt .t{font-weight:700;font-size:16px}
+.big-opt .s{font-size:13px;color:var(--ink-3)}
+.next{all:unset;cursor:pointer;display:block;text-align:center;background:var(--green);color:#fff;font:700 17px var(--body);padding:14px;border-radius:14px}
+.next[aria-disabled="true"]{opacity:.45;cursor:default}
+.next:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.back{all:unset;cursor:pointer;text-align:center;color:var(--ink-3);font-weight:600;font-size:14px;padding:6px}
+.whatis{font-size:13px;color:#1b3a8f;background:var(--blue-soft);border-radius:12px;padding:9px 12px}
+.whatis b{font-weight:700}
+.okrow{display:flex;gap:8px;align-items:center;font-size:15px;padding:5px 0}
+.okrow b{color:var(--green)}
+.site{border:1.5px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+.site .bar{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#f1f3f7;font:600 12px ui-monospace,Menlo,monospace;color:var(--ink-3)}
+.site .bar i{width:8px;height:8px;border-radius:50%;background:#cfd5df}
+.site .hero{padding:18px 16px;color:#fff}
+.site .hero .nm{font:700 26px/1.05 var(--display)}
+.site .hero .sub{font-size:13px;opacity:.85;margin-top:3px}
+.site .crest{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center;font:700 16px var(--display);margin-bottom:10px}
+.site .nav{white-space:nowrap;display:flex;gap:14px;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink-2);overflow-x:auto}
+.site .sec{padding:12px 16px;border-bottom:1px solid var(--line)}
+.site .sec:last-child{border-bottom:0}
+.site .sec h4{margin:0 0 6px;font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.joinbtn{display:inline-block;background:var(--green);color:#fff;font-weight:700;border-radius:10px;padding:8px 12px;font-size:14px}
+.share-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.share-grid button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border:1.5px solid var(--line);border-radius:14px;background:#fff;font:600 12.5px var(--body);text-align:center}
+.share-grid button:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.share-grid .dotc{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font:700 13px var(--display)}
+.msg{background:#e7f8ec;border-radius:14px 14px 4px 14px;padding:10px 12px;font-size:14px;line-height:1.4;align-self:flex-end;max-width:92%}
+.msg a{color:var(--blue);font-weight:600;word-break:break-all}
+.qr{width:200px;height:200px;margin:4px auto 0;display:block}
+.codebox{font:700 22px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-align:center;padding:10px;border:1.5px dashed var(--green);border-radius:12px;color:var(--green);background:var(--green-soft)}
+.check{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.check:first-child{border-top:0}
+.check .bx{width:24px;height:24px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:#fff}
+.check.done .bx{background:var(--green);border-color:var(--green)}
+.check .main{flex:1}
+.check.done .t{color:var(--ink-3);text-decoration:line-through}
+.prog{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:var(--green);border-radius:4px}
+.invbig{all:unset;cursor:pointer;display:flex;align-items:center;gap:12px;background:var(--green);color:#fff;border-radius:16px;padding:14px 16px}
+.invbig:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.invbig .t{font:700 18px var(--display);letter-spacing:.01em}
+.invbig .s{font-size:13px;opacity:.9}
+.gear{all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff;flex:none;margin-left:auto}
+.gear svg{width:19px;height:19px}
+.mode{display:inline-flex;background:var(--stage-card);border:1px solid var(--stage-line);border-radius:999px;padding:3px;gap:2px}
+.mode button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font:600 13px var(--body);color:var(--stage-ink)}
+.mode button[aria-pressed="true"]{background:var(--stage-ink-strong);color:var(--stage)}
+.mode button:focus-visible{outline:2px solid var(--stage-accent)}
+.flow{margin:0;padding:0;list-style:none;display:grid;gap:6px;counter-reset:f}
+.flow li{counter-increment:f}
+.flow button{all:unset;cursor:pointer;display:flex;gap:10px;align-items:flex-start;width:100%;box-sizing:border-box;padding:9px 12px;border-radius:12px;border:1px solid var(--stage-line);background:var(--stage-card);color:var(--stage-ink)}
+.flow button::before{content:counter(f);font:700 12px var(--body);min-width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--stage-line);color:var(--stage-ink-strong);flex:none}
+.flow button[aria-current="step"]{border-color:var(--stage-accent);box-shadow:inset 0 0 0 1px var(--stage-accent)}
+.flow button:focus-visible{outline:3px solid var(--stage-accent);outline-offset:2px}
+.flow b{display:block;color:var(--stage-ink-strong);font-size:14px}
+.flow span{font-size:13px}
+.sheet-scrim{position:absolute;inset:0;background:rgba(10,15,30,.45);display:flex;align-items:flex-end;z-index:5}
+.sheet{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px 16px 26px;display:flex;flex-direction:column;gap:12px;max-height:80%;overflow:auto;box-sizing:border-box}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto}
+.sheet h3{margin:0;font:700 20px var(--display)}
+.pick{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 4px;border-top:1px solid var(--line);width:100%;box-sizing:border-box}
+.pick:first-child{border-top:0}
+.pick .bx{width:24px;height:24px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:#fff}
+.pick[aria-pressed="true"] .bx{background:var(--green);border-color:var(--green)}
+.pick:focus-visible{outline:3px solid var(--green);outline-offset:1px}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team{border-radius:14px;padding:10px;border:1.5px solid var(--line);background:#fff}
+.team h4{margin:0 0 6px;font:700 15px var(--display);display:flex;align-items:center;gap:6px}
+.team h4 i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.team button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:6px 8px;margin-top:4px;border-radius:9px;background:var(--fill);font-size:14px;font-weight:600}
+.team button:focus-visible{outline:2px solid var(--green)}
+.score{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center}
+.score .nm{font:700 15px var(--display)}
+.score .n{font:700 44px/1 var(--display)}
+.step{display:flex;justify-content:center;gap:8px;margin-top:6px}
+.step button{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:700 20px var(--body);background:#fff}
+.step button:focus-visible{outline:3px solid var(--green)}
+.scorers{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.scorers button{all:unset;cursor:pointer;padding:7px 10px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font:600 14px var(--body)}
+.scorers button.has{border-color:var(--green);background:var(--green-soft)}
+.scorers button:focus-visible{outline:3px solid var(--green)}
+.mstep{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.capbar{background:#fff7e6;border:1.5px solid #f1c26b;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.capbar .t{font:700 17px var(--display);display:flex;align-items:center;gap:8px}
+.cbadge{display:inline-block;font:700 11px var(--body);letter-spacing:.06em;text-transform:uppercase;background:#b45309;color:#fff;border-radius:6px;padding:3px 7px}
+.rsvp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.rsvp button{all:unset;cursor:pointer;text-align:center;padding:11px;border-radius:12px;border:1.5px solid var(--line);font:700 15px var(--body);background:#fff}
+.rsvp button[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.rsvp button:focus-visible{outline:3px solid var(--blue)}
+.pick2{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:1px solid var(--line);width:100%;box-sizing:border-box}
+.pick2:first-child{border-top:0}
+.pick2 .bx{width:24px;height:24px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;font-weight:700;color:#fff;font-size:13px}
+.pick2[aria-pressed="true"] .bx{background:var(--green);border-color:var(--green)}
+.pick2:focus-visible{outline:3px solid var(--green)}
+.pick2 .tag{margin-left:auto}
+.big-score{font:700 40px/1 var(--display);text-align:center;letter-spacing:.02em}
+.prog2{height:8px;border-radius:4px;background:var(--fill);overflow:hidden;margin-top:6px}
+.prog2 i{display:block;height:100%;background:var(--green)}
+.who-sw{display:inline-flex;background:var(--stage-card);border:1px solid var(--stage-line);border-radius:999px;padding:3px;gap:2px}
+.who-sw button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font:600 13px var(--body);color:var(--stage-ink)}
+.who-sw button[aria-pressed="true"]{background:var(--stage-ink-strong);color:var(--stage)}
+.who-sw button:focus-visible{outline:2px solid var(--stage-accent)}
+</style>
+<div class="wrap">
+  <div class="phone-col">
+    <div class="phone club-ui" id="phone">
+      <div class="notch" aria-hidden="true"></div>
+      <div class="status" aria-hidden="true"><span>9:41</span><span>5G ▮▮▮</span></div>
+      <div class="screen" id="screen"></div>
+      <nav class="tabs" id="tabs" aria-label="App sections"></nav>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </div>
+  <div class="side">
+    <div>
+      <div class="eyebrow"><b>Fannet Player app · club members</b> · Gamma build mock-up</div>
+      <h1>One app for players, <em>captains get extra buttons</em></h1>
+      <p class="lede">This is what members of Southbank Sunday FC use. A captain is not a separate app: when the organizer makes a member Captain, their Player app shows captain tools for that game or the season.</p>
+    </div>
+    <div>
+      <h2>View as</h2>
+      <div class="who-sw" role="group" aria-label="View as" id="who"></div>
+      <p class="note" style="margin-top:8px" id="whonote"></p>
+    </div>
+    <div>
+      <h2>Jump to</h2>
+      <ol class="flow" id="flow"></ol>
+    </div>
+    <div class="panel">
+      <h2>How the captain role works</h2>
+      <ul class="same">
+        <li>The organizer sets it in the control panel under Members, for one game or the whole season.</li>
+        <li>Captain tools: pick the side from who said they're coming, send the team sheet, and confirm the score with the other club or the league.</li>
+        <li>Captains see teammates' names and availability only. Contact details stay with the club.</li>
+        <li>Bottom tabs are the beta athlete app's: Home, News, Openings, Fannet, Chats.</li>
+      </ul>
+    </div>
+    <p class="note">All people and clubs are made up. Same club and data as the <a href="fannet-club-desk.html" style="color:inherit">club control panel</a>.</p>
+  </div>
+</div>
+<script>
+const LOGO = `<svg class="fn-logo" role="img" aria-label="Fannet" viewBox="41 128 1056 188" xmlns="http://www.w3.org/2000/svg"><path fill="#1A1A1A" d="M259.8 135.5L415.0 135.5L384.8 167.2C381.0 171.2 372.5 174.5 365.9 174.5L222.7 174.5ZM185.4 212.5L347.2 212.5L319.3 241.8C314.8 246.5 304.3 250.5 296.1 250.5L149.3 250.5ZM108.6 289.5L179.5 289.5L167.6 301.9C164.2 305.5 153.3 308.5 143.4 308.5L90.5 308.5Z"/><path fill="#E12126" d="M170.2 174.5L289.6 174.5L253.5 212.5L121.1 212.5L150.3 181.7C154.1 177.7 163.0 174.5 170.2 174.5ZM95.4 250.5L214.4 250.5L177.3 289.5L45.3 289.5L74.1 259.2C78.6 254.4 88.2 250.5 95.4 250.5Z"/><path fill="#E12126" transform="translate(-243.5 -828.0) scale(3.5)" d="M310.1 309.8L308.9 309.8L308.6 309.4L308.3 309.1L308.4 300.3L308.4 291.5L308.6 291.2C309.1 290.5 308.8 290.5 319.9 290.5C331.0 290.5 330.7 290.5 331.2 291.2C331.4 291.6 331.6 293.8 331.3 294.2C331.0 294.8 330.9 294.8 323.0 294.8C318.0 294.9 315.5 294.9 315.1 295.0C314.1 295.3 313.7 296.8 314.4 297.5L314.7 297.9L316.8 298.0C317.9 298.0 320.9 298.0 323.3 298.0C328.5 297.9 329.7 298.0 330.2 298.5L330.5 298.8L330.5 299.9C330.4 302.2 330.9 302.1 322.5 302.1C315.8 302.1 314.8 302.1 314.5 302.5C313.9 303.0 314.1 304.4 314.7 304.9L315.1 305.1L322.7 305.2L330.3 305.3L330.7 305.5C331.4 305.9 331.8 307.9 331.4 308.9C331.1 309.7 331.3 309.7 322.2 309.8C317.7 309.8 313.4 309.9 312.6 309.9C311.9 309.9 310.7 309.9 310.1 309.8ZM247.3 309.6C247.1 309.5 246.9 309.3 246.9 309.1C246.8 308.9 246.8 304.8 246.8 300.1L246.8 291.3L247.1 291.0C247.3 290.8 247.6 290.7 248.3 290.6C249.6 290.4 252.4 290.6 253.0 290.8C253.7 291.1 255.0 292.2 258.5 295.6C265.1 301.9 265.2 302.0 265.7 301.9C266.2 301.7 266.3 300.9 266.4 295.8C266.5 290.3 266.4 290.6 269.4 290.6L271.2 290.5L271.5 290.8C271.7 291.1 271.9 291.4 272.0 291.8C272.2 292.8 272.0 308.5 271.8 309.0C271.5 309.6 271.2 309.7 268.5 309.7L266.0 309.7L265.2 309.3C264.5 308.9 260.3 305.0 255.9 300.6C253.9 298.5 253.0 298.0 252.5 298.6L252.3 298.8L252.3 303.7C252.2 309.1 252.2 309.3 251.4 309.6C250.8 309.9 247.8 309.9 247.3 309.6ZM191.8 309.6C191.7 309.6 191.4 309.4 191.3 309.2L191.0 308.8L191.0 300.4C191.0 294.5 191.0 291.7 191.1 291.4C191.3 290.5 190.9 290.6 201.0 290.5C206.0 290.4 210.7 290.5 211.5 290.5L213.0 290.6L213.4 291.0L213.8 291.3L213.8 292.4C213.9 293.9 213.8 294.4 213.4 294.7L213.0 294.9L207.4 294.9C204.3 294.8 200.8 294.9 199.5 294.9L197.3 295.0L197.0 295.4C196.3 296.2 196.4 297.3 197.1 297.9L197.5 298.1L202.1 298.1C204.6 298.1 207.7 298.0 208.9 298.0C211.6 297.9 212.3 298.0 212.7 298.4L213.0 298.7L213.0 300.0L213.0 301.3L212.7 301.7L212.4 302.0L210.9 302.1C210.2 302.1 207.9 302.2 205.8 302.2C201.1 302.2 197.7 302.4 197.3 302.6C196.6 302.9 196.5 303.3 196.5 306.0C196.4 308.7 196.3 309.1 195.7 309.5C195.4 309.7 192.3 309.7 191.8 309.6ZM217.9 309.6C217.7 309.5 217.5 309.3 217.4 309.1L217.1 308.8L217.2 301.7L217.2 294.6L217.7 293.6C218.3 292.4 219.1 291.7 220.4 291.0L221.4 290.5L228.8 290.5C236.7 290.5 237.7 290.6 238.9 291.2C239.8 291.6 240.6 292.5 241.2 293.9L241.7 295.1L241.7 302.0L241.6 308.9L241.3 309.3L240.9 309.6L239.2 309.6C236.4 309.6 236.3 309.6 236.2 306.7C236.2 305.6 236.1 304.7 236.0 304.5C235.7 304.0 235.4 303.9 229.2 304.0L223.2 304.0L222.9 304.3L222.6 304.6L222.6 306.7C222.6 309.1 222.5 309.4 221.7 309.6C221.2 309.7 218.3 309.7 217.9 309.6ZM278.6 309.5C278.2 309.4 278.0 309.3 277.8 309.0L277.5 308.5L277.6 300.0C277.6 290.6 277.6 291.0 278.4 290.6C279.0 290.3 283.0 290.2 283.6 290.5C284.3 290.7 285.6 291.8 288.0 294.1C292.6 298.6 295.9 301.8 296.2 301.9C296.6 302.0 296.9 301.7 297.0 301.1C297.1 300.9 297.1 298.6 297.1 296.1C297.1 291.9 297.2 291.4 297.4 291.0C297.7 290.4 298.2 290.3 300.0 290.4C301.7 290.4 302.3 290.6 302.6 291.1C302.8 291.5 302.9 307.7 302.7 308.6C302.5 309.6 302.4 309.6 299.1 309.6L296.4 309.6L295.8 309.3C295.5 309.1 294.4 308.1 293.3 307.0C292.2 305.9 290.7 304.5 290.0 303.9C289.3 303.3 288.0 302.0 287.0 301.1C285.1 299.1 284.2 298.5 283.8 298.5C283.2 298.5 283.1 298.5 283.1 303.8L283.0 308.8L282.8 309.2C282.6 309.4 282.4 309.5 282.2 309.6C281.7 309.7 279.2 309.7 278.6 309.5ZM344.6 309.6C344.1 309.3 344.0 309.0 344.0 302.1L343.9 295.6L343.7 295.3L343.5 295.0L339.8 295.0C336.7 294.9 336.1 294.9 335.7 294.7C335.2 294.4 335.1 293.9 335.1 292.6C335.1 291.4 335.3 290.8 335.7 290.5L336.0 290.3L346.7 290.3C358.4 290.3 358.0 290.2 358.4 291.0C358.6 291.4 358.7 293.7 358.5 294.2C358.3 294.8 357.9 294.8 354.1 294.9C350.5 295.0 350.0 295.0 349.7 295.5C349.7 295.6 349.6 298.6 349.6 302.2L349.5 308.7L349.3 309.0C349.1 309.2 348.8 309.5 348.6 309.5C348.0 309.7 345.0 309.7 344.6 309.6ZM370.3 304.2C368.6 303.8 366.8 302.7 365.3 301.3C363.7 299.7 362.8 296.7 363.1 293.8C363.2 292.1 364.0 290.3 365.1 289.0C366.1 287.8 368.3 286.3 369.5 285.9C370.9 285.5 372.7 285.5 373.9 285.8C377.5 286.8 380.1 289.2 381.0 292.6C381.7 295.2 381.4 297.4 380.2 299.4C378.3 302.6 377.0 303.6 374.1 304.2C372.7 304.5 371.7 304.5 370.3 304.2ZM372.6 302.6C373.9 302.5 375.5 301.9 376.5 301.1C377.7 300.2 378.8 298.8 379.0 297.8C379.0 297.5 379.2 297.0 379.3 296.7C379.8 295.6 379.8 294.5 379.3 293.0C378.8 291.5 378.7 291.2 378.0 290.4C377.5 289.8 375.8 288.4 375.2 288.1C375.1 288.0 374.3 287.9 373.3 287.8L371.6 287.6L370.3 287.8C368.8 288.1 368.5 288.3 367.1 289.8C365.4 291.6 364.8 293.0 364.8 295.8C364.8 296.9 365.0 297.4 365.7 298.8C367.0 301.1 368.9 302.5 371.0 302.7C371.4 302.8 371.5 302.8 372.6 302.6ZM235.5 299.7C236.1 299.4 236.2 299.0 236.3 297.8C236.4 296.5 236.2 295.7 235.7 295.3L235.4 295.0L229.5 295.0L223.6 295.0L223.2 295.2C222.6 295.6 222.4 296.4 222.5 297.9C222.6 299.3 222.7 299.6 223.4 299.8C224.0 300.0 235.2 299.9 235.5 299.7ZM368.3 298.9C367.9 298.6 367.8 298.1 367.8 295.0C367.8 292.2 367.8 291.7 368.0 291.2C368.3 290.5 368.5 290.4 372.0 290.5L375.2 290.5L375.8 290.9C376.4 291.3 376.8 291.9 376.9 292.8C377.0 293.7 376.9 294.1 376.1 295.1C375.2 296.2 375.1 296.4 375.9 297.4C376.2 297.8 376.5 298.2 376.5 298.4C376.5 298.7 376.0 299.0 375.2 299.0L374.5 299.0L373.1 297.5C371.5 295.9 371.1 295.6 370.6 295.9C370.2 296.1 370.0 296.5 370.0 297.3C370.0 298.1 369.8 298.7 369.5 298.8C369.2 299.0 368.5 299.0 368.3 298.9ZM373.8 294.0C374.5 293.7 374.7 293.3 374.5 292.8C374.2 292.2 373.7 292.0 372.1 292.0L370.6 291.9L370.3 292.2C369.8 292.9 370.1 294.1 370.8 294.4C371.5 294.5 373.0 294.4 373.8 294.0Z"/></svg>`;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ini = n => n.split(' ').map(w=>w[0]).slice(0,2).join('');
+function toast(m){ const t=$('#toast'); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2400); }
+const I = {
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  news:'<path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M7 9h7M7 13h7M7 16h4"/>',
+  market:'<path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6"/>',
+  fannet:'<path d="M12 21s-7-4.4-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6C19 16.6 12 21 12 21z"/>',
+  chat:'<path d="M4 5h16v11H9l-5 4z"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'
+};
+const ic = (k,w=22) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const TEAM = ['Tom Ngata','Ravi Shah','Ana Lopez','Sam Ito','Priya Das','Leo Brooks','Kai Wong','Nina Ross','Jess Park'];
+const COMING = {'Tom Ngata':'yes','Ravi Shah':'yes','Ana Lopez':'yes','Sam Ito':'maybe','Priya Das':'yes','Leo Brooks':'no','Kai Wong':'yes','Nina Ross':'yes','Jess Park':'yes'};
+const SEED = () => ({who:'tom', tab:'home', view:null, rsvp:{train:null, league:'yes'}, sheet:[], sent:false, confirm:null, backed:false, chat:[]});
+let st = SEED();
+try { const v = JSON.parse(localStorage.getItem('fnClubPlayer.v1')||'null'); if (v && v.who) st = Object.assign(st, v, {view:null}); } catch(e) {}
+const save = () => { try { localStorage.setItem('fnClubPlayer.v1', JSON.stringify(st)); } catch(e) {} };
+const ME = () => st.who==='tom' ? {n:'Tom Ngata', cap:true, games:6, goals:4} : {n:'Ravi Shah', cap:false, games:5, goals:2};
+
+function hdr(sub, back){ const me=ME();
+  return `<div class="hdr club"><div class="toprow">${back?`<button class="gear" style="margin-left:0;all:unset;cursor:pointer;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff" data-act="back" aria-label="Back">‹</button>`:`<span class="fn-logo-pill">${LOGO}</span>`}<span class="space-badge">Club</span>${me.cap?'<span class="cbadge">Captain</span>':''}<button data-act="toast" data-m="Me: profile, ID check status, privacy, my clubs" aria-label="Me" style="all:unset;cursor:pointer;margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff">${ic('gear',19)}</button></div>
+  <div class="hello"><div class="big">${back?esc(back):`Hi, ${me.n.split(' ')[0]}`}</div><div class="sub">${sub}</div></div></div>`; }
+
+/* ---------- Home ---------- */
+function home(){ const me=ME();
+  const cap = me.cap ? `<div class="capbar"><div class="t"><span class="cbadge">Captain</span> League round 1</div>
+    <div class="meta" style="margin:0">Southbank Sunday FC v Carlton Strikers · Sat 31 Oct, 2:00 pm · Inner Melbourne Futsal Centre</div>
+    ${st.sent?`<div class="okrow"><b>✓</b> Team sheet sent to the league (${st.sheet.length} players)</div>`:`<div class="meta" style="margin:0">${Object.values(COMING).filter(x=>x==='yes').length} teammates said they're coming. The team sheet is due Fri 30 Oct.</div>`}
+    <div class="row"><button class="btn green" data-act="go" data-v="pick">${st.sent?'Change the team':'Pick the side'}</button><button class="btn" data-act="go" data-v="confirm">Confirm a score${st.confirm?'':' (1)'}</button></div></div>` : '';
+  return hdr('Southbank Sunday FC · Futsal') + `<div class="body">
+    ${cap}
+    <div class="card"><h3>Next up<span>Sun 11 Oct</span></h3>
+      <div class="t" style="font-weight:700">Sunday training · 9:00 am</div><div class="meta">Southbank Rec Centre, court 2</div>
+      <div class="rsvp"><button data-act="rsvp" data-v="yes" aria-pressed="${st.rsvp.train==='yes'}">I'm coming</button><button data-act="rsvp" data-v="no" aria-pressed="${st.rsvp.train==='no'}">Can't make it</button></div></div>
+    <div class="card"><h3>Club match after training<span>10:00 am</span></h3><div class="li"><div class="av" style="background:#12613f">G</div><div class="main"><div class="t">You're in the Greens</div><div class="s">With ${me.cap?'Ravi, Ana, Kai and Jess':'Tom, Ana, Kai and Jess'}</div></div><span class="pill w">Greens</span></div></div>
+    <div class="card"><h3>My season<span>Club and league games</span></h3><div class="row" style="justify-content:space-around;text-align:center"><div><div style="font:700 26px var(--display)">${me.games}</div><div class="meta">Games</div></div><div><div style="font:700 26px var(--display)">${me.goals}</div><div class="meta">Goals</div></div><div><div style="font:700 26px var(--display)">${me.cap?4:3}/4</div><div class="meta">Sessions</div></div></div></div>
+    <div class="card"><h3>Season fee<span>$60</span></h3>${me.cap?'<div class="okrow"><b>✓</b> Paid on 2 Oct</div>':`<div class="meta" style="margin:4px 0 10px">Due by 31 Oct.</div><div class="row"><button class="btn green" data-act="toast" data-m="Card payment through Fannet: $63 including Fannet's 5%, plus the card fee shown at checkout">Pay in the app</button><button class="btn" data-act="toast" data-m="Pay Jess directly; she ticks you off">I'll pay the club</button></div>`}</div>
+  </div>`; }
+
+/* ---------- Captain: pick side ---------- */
+function pick(){
+  const avail = TEAM.filter(n=>COMING[n]!=='no');
+  return hdr('League round 1 · v Carlton Strikers', 'Pick the side') + `<div class="body" style="gap:12px">
+    <p class="hint">Futsal: 5 on court and up to 7 subs. Only players registered with the league are listed. You see who's coming, not their contact details.</p>
+    <div class="card"><h3>Players<span>${st.sheet.length} picked</span></h3>
+      ${avail.map(n=>`<button class="pick2" data-act="pk" data-v="${esc(n)}" aria-pressed="${st.sheet.includes(n)}"><span class="bx">${st.sheet.includes(n)?'✓':''}</span><span class="av" style="background:#12613f;width:30px;height:30px;font-size:12px">${ini(n)}</span><span style="font-weight:600">${esc(n)}</span><span class="tag pill ${COMING[n]==='yes'?'w':'a'}">${COMING[n]==='yes'?'Coming':'Maybe'}</span></button>`).join('')}
+      <p class="hint" style="margin-top:8px">Not listed: Leo Brooks (can't make it).</p></div>
+    <button class="next" data-act="sendsheet" ${st.sheet.length>=5?'':'aria-disabled="true"'}>Send team sheet to the league</button>
+    <p class="hint" style="text-align:center">${st.sheet.length<5?`Pick at least 5. `:''}The players picked get a message. The organizer sees it too.</p></div>`; }
+
+/* ---------- Captain: confirm score ---------- */
+function confirm(){
+  return hdr('Recorded game · Sat 3 Oct', 'Confirm the score') + `<div class="body" style="gap:12px">
+    <div class="card"><div class="meta" style="text-align:center">Riverside Futsal Club entered</div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-top:8px"><div style="font-weight:700">Southbank Sunday FC</div><div class="big-score">3 – 2</div><div style="font-weight:700;text-align:right">Riverside Futsal Club</div></div>
+      <div class="meta" style="margin-top:10px">Our scorers: Tom Ngata 2, Priya Das 1</div></div>
+    ${st.confirm?`<div class="card" style="background:var(--green-soft);border-color:var(--green)"><div class="okrow"><b>✓</b> ${st.confirm==='ok'?'Confirmed by both clubs. It goes into both clubs\' records and each player\'s game history.':'Sent back to Riverside with your note. The organizers of both clubs can see it.'}</div></div>`:
+    `<p class="hint">Recorded games need both clubs to agree. If something's wrong, say what, and it goes back to them.</p>
+    <button class="next" data-act="cf" data-v="ok">Yes, that's right</button><button class="back" data-act="cf" data-v="no">Something's wrong</button>`}</div>`; }
+
+/* ---------- other tabs ---------- */
+function news(){ return hdr('News from your club and sport') + `<div class="body">
+  <div class="chips" style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill w">My club</span><span class="pill">Futsal</span><span class="pill">League</span></div>
+  <div class="card"><div class="t" style="font-weight:700">Sunday 11 Oct: training then a club match</div><div class="meta">Jess Park · club news · today</div><p style="margin:6px 0 0;font-size:14px">Training at 9, then Greens v Whites at 10. Teams are in the app. Bring both shirts!</p></div>
+  <div class="card"><div class="t" style="font-weight:700">Welcome to our new home on Fannet!</div><div class="meta">Jess Park · club news · 5 Oct</div></div>
+  <div class="card"><div class="t" style="font-weight:700">Inner Melbourne Futsal League: summer fixtures out</div><div class="meta">League news · 6 Oct</div></div></div>`; }
+function market(){ return hdr('Open spots and offers') + `<div class="body">
+  <div class="card"><h3>Open spots near you<span>Futsal · Melbourne</span></h3>
+   <div class="li"><div class="main"><div class="t">Riverside Futsal Club</div><div class="s">Goalkeeper for Thursday games</div></div><button class="btn" data-act="toast" data-m="Riverside sees your name and club only. Your organizer is told">Ask to join</button></div>
+   <div class="li"><div class="main"><div class="t">Docklands Social Futsal</div><div class="s">Mixed team, one more player</div></div><button class="btn" data-act="toast" data-m="Docklands sees your name and club only. Your organizer is told">Ask to join</button></div></div>
+  <p class="hint">You can play for more than one club. Each club sees only what you share with it.</p></div>`; }
+function fannet(){ const me=ME();
+  return hdr('Player support') + `<div class="body">
+  <div class="card"><h3>Back a teammate<span>Fannet</span></h3>
+   <div class="li"><div class="av" style="background:#12613f">PD</div><div class="main"><div class="t">Priya Das</div><div class="s">Trip to the State Futsal Cup · $640 of $1,200</div><div class="prog2"><i style="width:53%"></i></div></div><button class="btn green" data-act="back2">${st.backed?'Backed ✓':'Back'}</button></div>
+   <div class="li"><div class="av" style="background:#12613f">SI</div><div class="main"><div class="t">Sam Ito</div><div class="s">New futsal shoes and shin pads · $180 of $300</div><div class="prog2"><i style="width:60%"></i></div></div><button class="btn" data-act="toast" data-m="Opens Sam's campaign">View</button></div></div>
+  <div class="card"><h3>Your own campaign<span>You own it</span></h3><p class="meta" style="margin:4px 0 10px">Raise money for kit, travel or a cup entry. Set a goal and 3 thank-yous for backers. Fannet keeps 20% and the club 5%; you get 75%.</p>
+   <button class="btn green" data-act="toast" data-m="Starts the campaign steps: service agreement, name, goal, 3 thank-yous, then share">Start a campaign</button></div></div>`; }
+function chats(){ const me=ME();
+  return hdr('Chats') + `<div class="body"><div class="card"><h3>Chats<span>${me.cap?3:2}</span></h3>
+   <div class="li"><div class="av" style="background:#12613f">SS</div><div class="main"><div class="t">Southbank Sunday FC: everyone</div><div class="s">Jess: Teams are up for Sunday!</div></div></div>
+   <div class="li"><div class="av" style="background:#12613f">G</div><div class="main"><div class="t">Greens, Sun 11 Oct</div><div class="s">Made for the club match</div></div></div>
+   ${me.cap?`<div class="li"><div class="av" style="background:#b45309">IM</div><div class="main"><div class="t">League round 1 squad</div><div class="s">Captain only can add people · made when you send the team sheet</div></div><span class="cbadge">Captain</span></div>`:''}</div></div>`; }
+
+const TABS=[['home','Home','home'],['news','News','news'],['market','Openings','market'],['fannet','Fannet','fannet'],['chats','Chats','chat']];
+const FLOW=[['home','Home','Next session, team, my season, fee'],['pick','Captain: pick the side','Team sheet for a league game','cap'],['confirm','Captain: confirm a score','Agree a recorded result with the other club','cap'],['fannet','Fannet','Back a teammate, start a campaign'],['market','Openings','Open spots at other clubs'],['chats','Chats','Club chat, match chat, squad chat']];
+function render(){
+  const me=ME();
+  $('#who').innerHTML=[['tom','Tom Ngata (Captain)'],['ravi','Ravi Shah (Player)']].map(([k,l])=>`<button data-who="${k}" aria-pressed="${st.who===k}">${l}</button>`).join('');
+  $('#whonote').textContent = me.cap ? 'Tom was made Captain for the season by the organizer, so his Player app shows the orange captain tools.' : 'Ravi is a regular player: same app, no captain tools.';
+  const cur = st.view || st.tab;
+  $('#flow').innerHTML=FLOW.map(f=>`<li><button data-jump="${f[0]}" ${cur===f[0]?'aria-current="step"':''} ${f[3]&&!me.cap?'disabled style="opacity:.5;cursor:default"':''}><div><b>${f[1]}</b><span>${f[3]&&!me.cap?'Switch to Tom to see this':f[2]}</span></div></button></li>`).join('');
+  if (st.view && !me.cap) st.view=null;
+  $('#screen').innerHTML = st.view ? ({pick,confirm})[st.view]() : ({home,news,market,fannet,chats})[st.tab]();
+  $('#tabs').innerHTML = TABS.map(([k,l,i])=>`<button class="tab" data-tab="${k}" ${st.tab===k?'aria-current="page"':''}>${ic(i)}${l}</button>`).join('');
+  save();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return; const d=b.dataset;
+  if (d.who) { st.who=d.who; st.view=null; }
+  else if (d.jump) { const j=d.jump; if (j==='pick'||j==='confirm') { st.tab='home'; st.view=j; } else { st.view=null; st.tab=j; } $('#screen').scrollTop=0; }
+  else if (d.tab) { st.tab=d.tab; st.view=null; $('#screen').scrollTop=0; }
+  else if (d.act==='go') { st.view=d.v; $('#screen').scrollTop=0; }
+  else if (d.act==='back') { st.view=null; }
+  else if (d.act==='rsvp') { st.rsvp.train=d.v; toast(d.v==='yes'?'Jess can see you\'re coming':'Jess can see you can\'t make it'); }
+  else if (d.act==='pk') { const n=d.v; st.sheet = st.sheet.includes(n) ? st.sheet.filter(x=>x!==n) : (st.sheet.length>=12 ? (toast('12 players at most'), st.sheet) : [...st.sheet,n]); }
+  else if (d.act==='sendsheet') { if (b.getAttribute('aria-disabled')==='true') return; st.sent=true; st.view=null; toast(`Team sheet sent. ${st.sheet.length} players told`); }
+  else if (d.act==='cf') { st.confirm=d.v; toast(d.v==='ok'?'Score confirmed':'Sent back to Riverside'); }
+  else if (d.act==='back2') { st.backed=true; toast('Backed Priya with $20. Thank you!'); }
+  else if (d.act==='toast') { toast(d.m); return; }
+  else return;
+  render();
+});
+render();
+</script>

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pickleball Club Control Panel</title>
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#0f172a;--mute:#475162;--line:#e3e8ef;--row:#f7f9fc;--focus:#2563eb;
+--green:#12613f;--green-2:#1b7d52;--green-bg:#e3f4ea;--ok-bg:#dcfce7;--ok:#166534;--wa-bg:#fef3c7;--wa:#92400e;--er-bg:#fee2e2;--er:#991b1b;--in-bg:#dbeafe;--in:#1e40af}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit}
+nav.main{background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:8px 20px;position:sticky;top:0;z-index:5}
+.logo{display:flex;align-items:center;gap:10px;margin-right:6px;text-decoration:none;color:var(--ink);flex:none}
+.crest{width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#0b3324,#12613f 70%,#2a9a63);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+.logo b{font-size:15px;line-height:1.1;display:block;max-width:150px}
+.logo small{color:var(--mute);font-size:12px}
+.links{display:flex;align-items:center;gap:1px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.links a{color:var(--mute);text-decoration:none;padding:7px 8px;font-size:14.5px;border-radius:8px;font-weight:600;white-space:nowrap;position:relative}
+.links a:hover{background:var(--row);color:var(--ink)}
+.links a[aria-current]{background:var(--green);color:#fff}
+.links .n{display:inline-grid;place-items:center;min-width:19px;height:19px;border-radius:10px;background:#dc2626;color:#fff;font-size:11.5px;margin-left:5px;padding:0 5px}
+.acts{display:flex;align-items:center;gap:10px;flex:none;margin-left:8px;padding-left:10px;border-left:1px solid var(--line);font-weight:600;white-space:nowrap}
+.acts .role{color:var(--mute);font-weight:500}
+main{max-width:1320px;margin:0 auto;padding:20px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+h1{font-size:23px;margin:0}
+.sub{color:var(--mute);margin:2px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card>header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.card>header span{font-weight:500;color:var(--mute);font-size:14px}
+.pad{padding:14px 16px}
+.grid{display:grid;gap:14px}
+.grid>*{min-width:0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:2fr 1fr}
+@media (max-width:900px){.g3{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .l{color:var(--mute);font-size:13px;font-weight:600}
+.kpi .v{font-size:26px;font-weight:800;line-height:1.2}
+.kpi .s{font-size:13px;color:var(--mute)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:7px 12px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--row)}
+.btn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.btn.pri:hover{background:var(--green-2)}
+.btn.sm{padding:4px 10px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.ok{background:var(--ok-bg);color:var(--ok)}.wa{background:var(--wa-bg);color:var(--wa)}.er{background:var(--er-bg);color:var(--er)}.in{background:var(--in-bg);color:var(--in)}.mu{background:#eef1f5;color:var(--mute)}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);background:var(--row)}
+tbody tr:hover{background:var(--row)}
+td.num,th.num{text-align:right}
+.priv{color:var(--mute);font-size:12.5px;display:flex;gap:6px;align-items:center}
+.lock{font-size:12px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+input[type=text],input[type=search],select,textarea{font:inherit;border:1px solid #c9d0da;border-radius:9px;padding:7px 10px;background:#fff;color:var(--ink)}
+textarea{width:100%;min-height:90px}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:14px}
+.help{background:var(--in-bg);color:#1b3a8f;border-radius:10px;padding:10px 14px;font-size:14px;margin-bottom:14px}
+.help b{font-weight:700}
+.check{display:flex;gap:10px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.check .bx{width:22px;height:22px;border-radius:7px;border:1.5px solid #c9d0da;display:grid;place-items:center;color:#fff;font-weight:800;flex:none;font-size:13px}
+.check.done .bx{background:var(--green);border-color:var(--green)}
+.check.done .t{color:var(--mute);text-decoration:line-through}
+.check .t{flex:1}
+.bar{height:8px;background:#eef1f5;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
+.li{display:flex;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.li .m{flex:1;min-width:0}
+.li .t{font-weight:600}
+.li .s{color:var(--mute);font-size:13.5px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.date{width:46px;text-align:center;border:1px solid var(--line);border-radius:9px;padding:3px 0;flex:none}
+.date b{display:block;font-size:18px;line-height:1.1}.date small{font-size:11px;color:var(--mute);text-transform:uppercase;font-weight:700}
+.linkbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1.5px dashed var(--green);background:var(--green-bg);border-radius:10px;padding:10px 12px;font:600 15px ui-monospace,Menlo,monospace;color:var(--green)}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.team{border:1px solid var(--line);border-radius:10px;padding:10px}
+.team h4{margin:0 0 6px}
+.team button{display:block;width:100%;text-align:left;border:0;background:var(--row);border-radius:7px;padding:5px 8px;margin-top:4px;cursor:pointer;font-weight:600}
+.site{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.site .bar2{display:flex;gap:6px;align-items:center;padding:7px 10px;background:#eef1f5;font:600 12.5px ui-monospace,Menlo,monospace;color:var(--mute)}
+.site .bar2 i{width:9px;height:9px;border-radius:50%;background:#cfd5df}
+.site .hero{background:linear-gradient(150deg,#0b3324,#12613f 70%,#2a9a63);color:#fff;padding:22px}
+.site .hero h2{margin:0;font-size:28px}
+.site .nav{display:flex;gap:16px;padding:9px 22px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px;color:var(--mute);overflow-x:auto;white-space:nowrap}
+.site .sec{padding:12px 22px;border-bottom:1px solid var(--line)}
+.site .sec h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.tog{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.tog:last-child{border-bottom:0}
+.tog .s{color:var(--mute);font-size:13.5px}
+.sw{appearance:none;width:42px;height:24px;border-radius:12px;background:#cbd2dc;position:relative;cursor:pointer;flex:none;margin:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.sw:checked{background:var(--green)}.sw:checked::after{left:21px}
+.drawer{position:fixed;inset:0;background:rgba(15,23,42,.4);display:flex;justify-content:flex-end;z-index:20}
+.drawer .p{background:#fff;width:min(420px,100%);height:100%;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:10px 16px;z-index:30;max-width:calc(100% - 32px)}
+.guide{background:#fff8e6;border-bottom:1px solid #f1dfae;padding:8px 20px;font-size:14px;color:#6b4a00}
+.guide a{color:#6b4a00;font-weight:700}
+@media (max-width:640px){nav.main{padding:8px 12px;flex-wrap:wrap}.links{order:3;flex-basis:100%}.acts .who{display:none}main{padding:14px 12px}.teams{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.sw::after{transition:none}}
+</style>
+</head>
+<body>
+<div class="guide">Mock-up · Gamma build · the club control panel set up for pickleball. Same pages as the <a href="fannet-club-desk.html">futsal version</a>; only the sport parts change. All people are made up.</div>
+<nav class="main" aria-label="Main">
+  <a class="logo" href="#overview"><span class="crest">TD</span><span><b>Thao Dien Pickleball Club</b><small>Control panel · Pickleball</small></span></a>
+  <div class="links" id="links"></div>
+  <div class="acts"><span class="who">Linh Nguyen <span class="role">(Owner)</span></span></div>
+</nav>
+<main id="main"></main>
+<div id="layer"></div>
+<div class="toast" id="toast" hidden></div>
+<script>
+const $=s=>document.querySelector(s);
+const money=n=>Math.round(+n).toLocaleString('en-US')+' ₫';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600);}
+const SEED=()=>({
+ members:[
+  {n:'Linh Nguyen',role:'Owner',joined:'1 Oct',email:'linh.nguyen@example.com',mob:'+84 900 000 0001',fee:true,came:4},
+  {n:'Huy Le',role:'Captain',joined:'1 Oct',email:'huy.le@example.com',mob:'+84 900 000 0002',fee:true,came:4},
+  {n:'Mai Tran',role:'Player',joined:'2 Oct',email:'mai.tran@example.com',mob:'+84 900 000 0003',fee:true,came:3},
+  {n:'An Pham',role:'Player',joined:'3 Oct',email:'an.pham@example.com',mob:'',fee:true,came:3},
+  {n:'Khoa Vo',role:'Player',joined:'3 Oct',email:'',mob:'+84 900 000 0004',fee:false,came:2},
+  {n:'Thu Hoang',role:'Player',joined:'4 Oct',email:'thu.hoang@example.com',mob:'',fee:true,came:4},
+  {n:'Duc Bui',role:'Player',joined:'4 Oct',email:'duc.bui@example.com',mob:'',fee:false,came:1},
+  {n:'Lan Dang',role:'Player',joined:'5 Oct',email:'lan.dang@example.com',mob:'+84 900 000 0005',fee:true,came:2},
+  {n:'Minh Do',role:'Player',joined:'5 Oct',email:'minh.do@example.com',mob:'',fee:false,came:2},
+  {n:'Quang Ho',role:'Coach',joined:'6 Oct',email:'quang.ho@example.com',mob:'+84 900 000 0006',fee:true,came:4}],
+ requests:[{n:'Vy Ngo',how:'Club link, shared in WhatsApp',when:'Today 8:12 am'},{n:'Bao Truong',how:'QR code at training',when:'Yesterday'}],
+ invites:[{n:'Ha Phan',to:'ha.phan@example.com',sent:'6 Oct',st:'Opened'},{n:'Tuan Vu',to:'+84 900 000 0007',sent:'6 Oct',st:'Sent'},{n:'Nam Ly',to:'nam.ly@example.com',sent:'2 Oct',st:'Joined'}],
+ events:[{id:1,kind:'Open play',t:'Sunday open play',d:'Sun 11 Oct',time:'6:30 am',place:'Thao Dien Courts, courts 1–4',going:14,no:1,repeat:'Every Sunday'},
+         {id:2,kind:'Club match',t:'Doubles round robin',d:'Sun 11 Oct',time:'8:30 am',place:'Thao Dien Courts, courts 1–4',going:8,no:0,repeat:''},
+         {id:3,kind:'Social',t:'End of month dinner',d:'Sat 31 Oct',time:'7:00 pm',place:'Thao Dien riverside',going:9,no:2,repeat:''}],
+ results:[{d:'Sat 3 Oct',a:'Thao Dien Pickleball Club',b:'Saigon Riverside Pickleball',sa:3,sb:2,type:'Recorded',inter:true},
+          {d:'Sun 4 Oct',a:'Huy Le & Mai Tran',b:'An Pham & Khoa Vo',games:[[11,7],[9,11],[11,6]]},
+          {d:'Sun 4 Oct',a:'Thu Hoang & Lan Dang',b:'Duc Bui & Minh Do',games:[[11,4],[11,9]]},
+          {d:'Sun 4 Oct',a:'Huy Le & Mai Tran',b:'Thu Hoang & Lan Dang',games:[[11,8],[7,11],[10,12]]},
+          {d:'Sun 27 Sep',a:'Khoa Vo',b:'Duc Bui',games:[[11,5],[11,8]],singles:true}],
+ camps:[{n:'Thu Hoang',t:'Entry and travel for the Da Nang Amateur Open',goal:30000000,got:16000000,backers:51,ends:'30 Nov',web:true,why:'Flights, entry and two nights in Da Nang'},
+        {n:'Khoa Vo',t:'A new paddle and court shoes',goal:4000000,got:2400000,backers:32,ends:'15 Nov',web:true,why:'Kit for the season'}],
+ asked:[], supportOn:true, apps:{player:true,fan:true,captain:false,officials:false,website:true},
+ peers:[{n:'Saigon Riverside Pickleball',city:'Ho Chi Minh City',since:'6 Oct',st:'Linked'}],
+ peerIn:[{n:'District 7 Social Pickleball',city:'Ho Chi Minh City',when:'Yesterday'}],
+ leagueIn:{n:'Saigon Inter-Club Pickleball League',season:'Season 2026–27 · Division 2',starts:'Sat 31 Oct'},
+ leagues:[], reg:null, game:null, verifiedBy:'', payVia:'club', passOn:false,
+ news:[{t:'Welcome to our new home on Fannet!',d:'5 Oct',web:true,by:'Linh Nguyen'}],
+ site:{support:true,photos:true,results:true,sessions:true,news:true,fees:false,kids:false},
+ fee:600000, logo:false, helpers:[{n:'Huy Le',can:'Members, sessions and results'},{n:'Quang Ho',can:'Sessions and results'}],
+ draft:null, show:{}
+});
+let S=SEED();try{const v=JSON.parse(localStorage.getItem('fnClubDeskPb.v1')||'null');if(v&&v.members)S=Object.assign(S,v,{draft:null});if(S.apps.website===undefined)S.apps.website=true;}catch(e){}
+const save=()=>{try{localStorage.setItem('fnClubDeskPb.v1',JSON.stringify(S))}catch(e){}};
+const PAGES=[['overview','Overview'],['members','Members'],['invites','Invites'],['calendar','Calendar'],['results','Results'],['connections','Connections'],['support','Player support'],['website','Website'],['news','News'],['fees','Fees'],['settings','Settings']];
+const page=()=>{const h=location.hash.slice(1);return PAGES.some(p=>p[0]===h)?h:'overview'};
+const L='thao-dien-pickleball.fannet.club';
+const PRIV='<span class="priv"><span class="lock" aria-hidden="true">🔒</span> Only your club sees contact details. They never appear on the website or to other clubs.</span>';
+const hd=(h,s,act='')=>`<div class="top"><div><h1>${h}</h1><p class="sub">${s}</p></div><div class="row">${act}</div></div>`;
+
+function overview(){
+ const todo=[['Add your logo',S.logo,'settings'],['Invite your players',S.invites.length>0,'invites'],['Add your first session',S.events.length>0,'calendar'],['Post a hello on your website',S.news.length>0,'news'],['Set a season fee (optional)',S.fee>0,'fees']];
+ const done=todo.filter(t=>t[1]).length, paid=S.members.filter(m=>m.fee).length;
+ return hd('Good morning, Linh','Here is what needs you today. Everything else can wait.',`<a class="btn pri" href="#invites">Invite players</a><a class="btn" href="#calendar">Add a session</a>`)+
+ `<div class="kpis">
+  <a class="kpi" href="#members" style="text-decoration:none;color:inherit"><div class="l">Members</div><div class="v">${S.members.length}</div><div class="s">${S.invites.filter(i=>i.st!=='Joined').length} invites waiting</div></a>
+  <a class="kpi" href="#invites" style="text-decoration:none;color:inherit"><div class="l">Asked to join</div><div class="v" style="color:${S.requests.length?'#b45309':'inherit'}">${S.requests.length}</div><div class="s">${S.requests.length?'Approve or decline':'All done'}</div></a>
+  <a class="kpi" href="#calendar" style="text-decoration:none;color:inherit"><div class="l">Next session</div><div class="v" style="font-size:20px">${S.events[0]?esc(S.events[0].d):'None yet'}</div><div class="s">${S.events[0]?`${S.events[0].going} coming`:''}</div></a>
+  <a class="kpi" href="#fees" style="text-decoration:none;color:inherit"><div class="l">Season fee paid</div><div class="v">${paid} of ${S.members.length}</div><div class="bar" style="margin-top:6px"><i style="width:${paid/S.members.length*100}%"></i></div></a>
+ </div>
+ <div class="grid g3"><div class="grid">
+  ${S.requests.length?`<section class="card"><header>Asked to join <span>ID checked by Fannet</span></header>${reqList()}</section>`:''}
+  <section class="card"><header>Coming up <a class="btn sm" href="#calendar">All sessions</a></header>${S.events.slice(0,3).map(evLi).join('')}</section>
+  <section class="card"><header>Latest result <a class="btn sm" href="#results">All results</a></header>${S.results[0]?resLi(S.results[0]):'<div class="pad">No games yet.</div>'}</section>
+ </div><div class="grid" style="align-content:start">
+  <section class="card"><header>Getting started <span>${done} of ${todo.length}</span></header><div class="pad" style="padding-bottom:4px"><div class="bar"><i style="width:${done/todo.length*100}%"></i></div></div>
+   ${todo.map(t=>`<div class="check ${t[1]?'done':''}"><span class="bx">${t[1]?'✓':''}</span><span class="t">${t[0]}</span>${t[1]?'':`<a class="btn sm" href="#${t[2]}">Do it</a>`}</div>`).join('')}</section>
+  <section class="card"><header>Your Fannet apps <a class="btn sm" href="#settings">Change</a></header><div class="pad" style="font-size:14px">${APPS.filter(a=>a[4]||S.apps[a[0]]).map(a=>`<span class="chip ok" style="margin:0 4px 4px 0">${a[1]}</span>`).join('')}${APPS.filter(a=>!a[4]&&!S.apps[a[0]]).map(a=>`<span class="chip mu" style="margin:0 4px 4px 0">${a[1]}: off</span>`).join('')}</div></section>
+  ${S.supportOn?'':'<!--'}<section class="card"><header>Player support <a class="btn sm" href="#support">Open</a></header>${S.camps.map(c=>`<div class="li"><span class="av">${ini(c.n)}</span><div class="m"><div class="t">${esc(c.n)}</div><div class="s">${money(c.got)} of ${money(c.goal)} · ${c.backers} backers</div><div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,c.got/c.goal*100)}%"></i></div></div></div>`).join('')||'<div class="pad sub">No campaigns yet.</div>'}</section>${S.supportOn?'':'-->'}
+  <section class="card"><header>Your website ${S.apps.website?vchip():'<span class="chip mu">Off</span>'}</header><div class="pad">${S.apps.website?'':'<p class="sub" style="font-size:14px;margin-top:0">Turned off. The club is private online.</p>'}<div style="font-family:ui-monospace,Menlo,monospace;font-size:14px">${L}</div><p class="sub" style="font-size:14px">Updates by itself from this panel. Verified once your association or Fannet confirms the club.</p><a class="btn" href="#website">Manage website</a></div></section>
+ </div></div>`;
+}
+const reqList=()=>S.requests.map(r=>`<div class="li"><span class="av">${ini(r.n)}</span><div class="m"><div class="t">${esc(r.n)}</div><div class="s">${esc(r.how)} · ${esc(r.when)}</div></div><button class="btn sm pri" data-a="approve" data-v="${esc(r.n)}">Approve</button><button class="btn sm" data-a="decline" data-v="${esc(r.n)}">Decline</button></div>`).join('')||'<div class="pad sub">Nobody is waiting.</div>';
+const dd=d=>{const p=d.split(' ');return `<span class="date"><small>${p[0]}</small><b>${p[1]}</b><small>${p[2]}</small></span>`};
+const vchip=()=>S.verifiedBy?'<span class="chip ok">✓ Verified</span>':'<span class="chip wa">Not yet verified</span>';
+const inCount=()=>S.peerIn.length+(S.leagueIn?1:0);
+const evLi=e=>`<div class="li">${dd(e.d)}<div class="m"><div class="t">${esc(e.t)}</div><div class="s">${esc(e.time)} · ${esc(e.place)}${e.repeat?' · '+e.repeat:''}</div></div><span class="chip ${e.kind==='Recorded'?'ok':e.kind==='Club match'||e.kind==='Friendly'?'in':e.kind==='Social'?'wa':e.kind==='League'?'er':'ok'}">${e.kind}</span><span class="chip mu">${e.going} coming</span></div>`;
+const scLine=r=>r.inter?'3 matches to 2':(r.games||[]).map(g=>g.join('–')).join(', ');
+const won=r=>{if(r.inter)return r.sa>r.sb?'a':'b';const w=(r.games||[]).filter(g=>g[0]>g[1]).length;return w*2>(r.games||[]).length?'a':'b'};
+const GT={Club:['mu','Club match'],Friendly:['in','Friendly'],Recorded:['ok','Recorded'],League:['er','League']};
+const gchip=r=>{const g=GT[r.type||'Club'];return `<span class="chip ${g[0]}">${g[1]}</span>`};
+const resLi=r=>`<div class="li"><div class="m"><div class="t">${won(r)==='a'?`<b>${esc(r.a)}</b> beat ${esc(r.b)}`:`<b>${esc(r.b)}</b> beat ${esc(r.a)}`}</div><div class="s">${r.d} · ${scLine(r)}${r.singles?' · singles':''}</div></div>${gchip(r)}</div>`;
+
+function members(){
+ const q=(S.q||'').toLowerCase(), list=S.members.filter(m=>!q||m.n.toLowerCase().includes(q)||m.role.toLowerCase().includes(q));
+ return hd('Members',`${S.members.length} people in the club. Click a name to see or change their details.`,`<a class="btn pri" href="#invites">Add people</a><button class="btn" data-a="export">Download list</button>`)+
+ `<div class="tools"><input type="search" id="q" placeholder="Find a member" aria-label="Find a member" value="${esc(S.q||'')}">${PRIV}</div>
+ <section class="card"><div class="wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Joined</th><th>Email</th><th>Mobile</th><th>Fee</th><th class="num">Sessions came</th><th></th></tr></thead><tbody>
+ ${list.map(m=>`<tr><td><button class="btn sm" style="border:0;padding:0;background:none" data-a="open" data-v="${esc(m.n)}"><span class="av" style="width:26px;height:26px;font-size:11px">${ini(m.n)}</span> ${esc(m.n)}</button></td><td>${m.role}</td><td>${m.joined}</td><td>${esc(m.email)||'<span class="sub">–</span>'}</td><td>${esc(m.mob)||'<span class="sub">–</span>'}</td><td>${m.fee?'<span class="chip ok">Paid</span>':'<span class="chip wa">Not yet</span>'}</td><td class="num">${m.came} of 4</td><td><button class="btn sm" data-a="open" data-v="${esc(m.n)}">Open</button></td></tr>`).join('')||'<tr><td colspan="8" class="sub">Nobody matches.</td></tr>'}
+ </tbody></table></div></section>`;
+}
+function drawer(n){
+ const m=S.members.find(x=>x.n===n); if(!m) return '';
+ return `<div class="drawer" data-a="close"><div class="p" role="dialog" aria-modal="true" aria-label="${esc(m.n)}" data-stop>
+  <div class="row" style="justify-content:space-between"><div class="row"><span class="av" style="width:44px;height:44px;font-size:15px">${ini(m.n)}</span><div><b style="font-size:18px">${esc(m.n)}</b><div class="sub">Joined ${m.joined} · ID checked</div></div></div><button class="btn sm" data-a="close">Close</button></div>
+  <label class="f">Role in the club<select data-k="role" data-v="${esc(m.n)}">${['Player','Captain','Coach','Helper','Owner'].map(r=>`<option ${r===m.role?'selected':''}>${r}</option>`).join('')}</select></label>
+  <div class="card"><header>Contact <span>🔒 club only</span></header><div class="pad">${esc(m.email)||'No email'}<br>${esc(m.mob)||'No mobile'}</div></div>
+  <div class="card"><header>This season</header><div class="pad">Came to ${m.came} of 4 sessions · Fee ${m.fee?'paid':'not paid yet'}<br>Club matches: ${rec(m.n).w} won, ${rec(m.n).l} lost</div></div>
+  <p class="sub" style="font-size:13.5px">Date of birth and ID stay private. Fannet only tells the club the check passed.</p>
+  <div class="row"><button class="btn" data-a="msg" data-v="${esc(m.n)}">Send a message</button>${m.role==='Owner'?'':`<button class="btn" data-a="remove" data-v="${esc(m.n)}" style="color:#991b1b">Remove from club</button>`}</div>
+ </div></div>`;
+}
+function invites(){
+ return hd('Invites','Bring people into the club. They do a quick ID check, then they are in.')+
+ `<div class="help"><b>Two kinds of invite.</b> The club link and QR code work for anyone, and you approve each person. Personal invites go to one email or mobile, and that person joins straight after the ID check.</div>
+ <div class="grid g2">
+  <section class="card"><header>Club link and QR code <span>For your group chat or noticeboard</span></header><div class="pad grid" style="gap:10px">
+   <div class="linkbox">${L}/join</div>
+   <div class="row"><button class="btn pri" data-a="toast" data-m="Link copied">Copy link</button><button class="btn" data-a="toast" data-m="QR poster downloaded as a PDF to print">Print QR poster</button><button class="btn" data-a="toast" data-m="Old link turned off. A new link was made">Make a new link</button></div>
+   <p class="sub" style="font-size:13.5px;margin:0">Make a new link if the old one was shared somewhere it shouldn't be. People who already joined stay in.</p></div></section>
+  <section class="card"><header>Personal invites <span>Each link works for one person</span></header><div class="pad grid" style="gap:10px">
+   <label class="f">One per line: name, then email or mobile<textarea id="plist" placeholder="Ha Phan, ha.phan@example.com"></textarea></label>
+   <div class="row"><button class="btn pri" data-a="sendp">Send invites</button><button class="btn" data-a="sample">Fill in a sample</button><button class="btn" data-a="toast" data-m="Pick a spreadsheet (.xlsx or .csv) with a name column and an email or mobile column">Upload a spreadsheet</button></div></div></section>
+ </div>
+ <div class="grid g2" style="margin-top:14px">
+  <section class="card"><header>Asked to join <span>${S.requests.length} waiting</span></header>${reqList()}</section>
+  <section class="card"><header>Sent invites <span>Expire after 30 days</span></header><div class="wrap"><table><thead><tr><th>Name</th><th>Sent to</th><th>Sent</th><th>Status</th><th></th></tr></thead><tbody>
+   ${S.invites.map(i=>`<tr><td>${esc(i.n)}</td><td>${esc(i.to)}</td><td>${i.sent}</td><td><span class="chip ${i.st==='Joined'?'ok':i.st==='Opened'?'in':'mu'}">${i.st}</span></td><td>${i.st==='Joined'?'':`<button class="btn sm" data-a="toast" data-m="Invite sent again to ${esc(i.n)}">Resend</button>`}</td></tr>`).join('')}
+  </tbody></table></div></section>
+ </div>`;
+}
+function calendar(){
+ const d=S.draft;
+ return hd('Calendar','Open play, round robins and socials. Members see them in the app and say if they are coming.',`<button class="btn pri" data-a="newev" data-v="Open play">New open play</button><button class="btn" data-a="newmatch">New round robin</button><button class="btn" data-a="newev" data-v="Social">New social</button>`)+
+ (d&&d.type==='ev'?`<section class="card" style="margin-bottom:14px"><header>New ${d.kind.toLowerCase()}</header><div class="pad grid g2" style="gap:12px">
+   <label class="f">Name<input type="text" id="ev-t" value="${d.kind==='Social'?'Season launch drinks':'Thursday open play'}"></label>
+   <label class="f">Day<select id="ev-d"><option>Thu 15 Oct</option><option>Sun 18 Oct</option><option>Sat 24 Oct</option></select></label>
+   <label class="f">Time<input type="text" id="ev-time" value="${d.kind==='Social'?'6:00 pm':'5:30 pm'}"></label>
+   <label class="f">Place<input type="text" id="ev-p" value="Thao Dien Courts, courts 1–4"></label>
+   <label class="f">Repeat<select id="ev-r"><option value="">Just once</option><option>Every week</option></select></label>
+   <div class="row" style="align-self:end"><button class="btn pri" data-a="saveev">Add and tell members</button><button class="btn" data-a="cancel">Cancel</button></div></div></section>`:'')+
+ (d&&d.type==='match'?matchBox(d):'')+
+ `<section class="card"><header>Coming up <span>${S.events.length}</span></header>${S.events.map(evLi).join('')||'<div class="pad sub">Nothing yet.</div>'}</section>
+ <div class="help" style="margin-top:14px"><b>Playing other clubs?</b> Link with a club or join a league under <a href="#connections">Connections</a>. Friendlies and league fixtures then show here.</div>`;
+}
+const rr=n=>{const t=[...Array(n).keys()];if(n%2)t.push(-1);const R=[];for(let r=0;r<t.length-1;r++){const P=[];for(let i=0;i<t.length/2;i++){const a=t[i],b=t[t.length-1-i];if(a>=0&&b>=0)P.push([a,b])}R.push(P);t.splice(1,0,t.pop())}return R};
+function matchBox(d){
+ const pool=S.members.map(m=>m.n), ok=d.picked.length>=4&&d.picked.length%2===0;
+ if(d.stage===0) return `<section class="card" style="margin-bottom:14px"><header>New doubles round robin: who is playing? <span>${d.picked.length} picked</span></header><div class="pad">
+  <div class="row">${pool.map(n=>`<label class="chip ${d.picked.includes(n)?'ok':'mu'}" style="cursor:pointer;font-size:14px;padding:5px 11px"><input type="checkbox" data-a="pick" data-v="${esc(n)}" ${d.picked.includes(n)?'checked':''} style="margin:0 6px 0 0">${esc(n)}</label>`).join('')}</div>
+  <div class="row" style="margin-top:12px"><button class="btn pri" data-a="split" ${ok?'':'disabled'}>Make doubles pairs</button><button class="btn" data-a="cancel">Cancel</button><span class="sub" style="font-size:13.5px">${ok?'Ticked: members who said they\'re coming on Sun 11 Oct.':'Doubles needs an even number of players, at least 4.'}</span></div></div></section>`;
+ const R=rr(d.P.length), courts=Math.min(4,Math.floor(d.P.length/2));
+ return `<section class="card" style="margin-bottom:14px"><header>New doubles round robin <span>${d.P.length} pairs · ${R.length} rounds · ${courts} court${courts>1?'s':''}</span></header><div class="pad">
+  <div class="row">${d.P.map((p,i)=>`<span class="chip in" style="font-size:14px;padding:5px 11px">Pair ${i+1}: ${esc(p[0])} & ${esc(p[1])}</span>`).join('')}</div>
+  <div class="wrap" style="margin-top:12px"><table><thead><tr><th>Round</th>${[...Array(courts).keys()].map(c=>`<th>Court ${c+1}</th>`).join('')}</tr></thead><tbody>
+   ${R.map((P,r)=>`<tr><td>${r+1}</td>${[...Array(courts).keys()].map(c=>`<td>${P[c]?`Pair ${P[c][0]+1} v Pair ${P[c][1]+1}`:'<span class="sub">Rest</span>'}</td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>
+  <p class="sub" style="font-size:13.5px">Each game to 11, win by 2. Every pair plays every other pair once.</p>
+  <div class="row"><button class="btn pri" data-a="savematch">Add round robin and tell players</button><button class="btn" data-a="split">New pairs</button><button class="btn" data-a="cancel">Cancel</button></div></div></section>`;
+}
+const rec=n=>{let w=0,l=0,pf=0,pa=0;S.results.forEach(r=>{if(r.inter)return;const side=r.a.split(' & ').includes(n)?'a':r.b.split(' & ').includes(n)?'b':null;if(!side)return;won(r)===side?w++:l++;(r.games||[]).forEach(g=>{pf+=side==='a'?g[0]:g[1];pa+=side==='a'?g[1]:g[0]})});return{w,l,d:pf-pa}};
+function results(){
+ const names=[...new Set(S.results.filter(r=>!r.inter).flatMap(r=>[...r.a.split(' & '),...r.b.split(' & ')]))];
+ const ladder=names.map(n=>[n,rec(n)]).sort((a,b)=>b[1].w-a[1].w||b[1].d-a[1].d).slice(0,6);
+ return hd('Results','Matches are best of 3 games, each to 11, win by 2. Recorded matches go into players\' records; only league matches count in a league.',`<button class="btn pri" data-a="toast" data-m="Pick a match from the Calendar to enter its games">Enter a score</button>`)+
+ `<div class="grid g3"><section class="card"><header>Matches <span>${S.results.length}</span></header><div class="wrap"><table><thead><tr><th>Date</th><th>Winner</th><th>Beat</th><th>Games</th><th>Type</th><th></th></tr></thead><tbody>
+  ${S.results.map(r=>{const w=won(r)==='a';return `<tr><td>${r.d}</td><td style="white-space:normal"><b>${esc(w?r.a:r.b)}</b></td><td style="white-space:normal">${esc(w?r.b:r.a)}</td><td>${scLine(r)}${r.singles?' <span class="sub">singles</span>':''}</td><td>${gchip(r)}${r.type==='Recorded'?'<div class="sub" style="font-size:12.5px">Confirmed by both clubs</div>':''}</td><td><button class="btn sm" data-a="toast" data-m="Opens the games to correct them">Edit</button></td></tr>`}).join('')}
+ </tbody></table></div></section>
+ <section class="card" style="align-self:start"><header>Club ladder <span>Club matches this season</span></header>${ladder.map(([n,x],i)=>`<div class="li"><b style="width:18px">${i+1}</b><span class="av" style="width:28px;height:28px;font-size:11px">${ini(n)}</span><div class="m"><div class="t">${esc(n)}</div><div class="s">${x.d>=0?'+':''}${x.d} points</div></div><b>${x.w}–${x.l}</b></div>`).join('')}</section></div>`;
+}
+const supSwitch=()=>`<label class="tog" style="border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:14px"><span><b>Player support for this club is ${S.supportOn?'on':'off'}</b><br><span class="s">${S.supportOn?'Players can link campaigns to the club, and you can show them on the website and in News.':'Players can\'t link campaigns to the club. Nothing about funding shows on the club website, in club News or in this panel.'}</span></span><input type="checkbox" class="sw" id="sup-on" ${S.supportOn?'checked':''} aria-label="Player support for this club"></label>`;
+function gameForm(){const g=S.game;const o=(k,t,d)=>`<label class="tog" style="cursor:pointer;border:1px solid ${g.type===k?'var(--green)':'var(--line)'};border-radius:10px;margin-top:8px;background:${g.type===k?'var(--green-bg)':'#fff'}"><span><b>${t}</b><br><span class="s">${d}</span></span><input type="radio" name="gtype" value="${k}" ${g.type===k?'checked':''} style="width:20px;height:20px;accent-color:var(--green)"></label>`;
+ return `<div class="pad" style="background:var(--row);border-bottom:1px solid var(--line)"><b>Game against ${esc(g.with)}</b>
+  ${o('Friendly','Friendly','Just for fun. The scores show on both websites but go into nobody\'s record.')}
+  ${o('Recorded','Recorded','Each match goes into both clubs\' records and each player\'s record. Both clubs confirm the final score. It isn\'t a league result.')}
+  <div class="grid g2" style="gap:10px;margin-top:10px"><label class="f">Day<select id="g-d"><option>Sun 25 Oct</option><option>Sun 1 Nov</option><option>Sun 8 Nov</option></select></label><label class="f">Where<select id="g-w"><option>Home: Thao Dien Courts, courts 1–4</option><option>Away: their ground</option></select></label></div>
+  <div class="row" style="margin-top:10px"><button class="btn pri" data-a="gamesend">Send to ${esc(g.with)}</button><button class="btn" data-a="gamecancel">Cancel</button></div></div>`;}
+const DIR=[['Saigon Riverside Pickleball','SRP-3317'],['District 7 Social Pickleball','DSF-2290'],['Binh Thanh Dinkers','NTF-5521'],['Phu Nhuan Paddle Club','SKK-1048'],['Thu Duc Pickleball Club','TPC-7702']];
+function connections(){
+ const r=S.reg, q=(S.cq||'').trim().toLowerCase();
+ const hits=q.length<3?[]:DIR.filter(([n,c])=>(n.toLowerCase().includes(q)||c.toLowerCase()===q)&&!S.peers.some(p=>p.n===n)&&!S.peerIn.some(p=>p.n===n)&&n!=='Thao Dien Pickleball Club');
+ if(r) return hd('Join '+esc(S.leagueIn.n),'Step 2 of 2: register your players and choose what the league can see.')+
+  `<div class="grid g2"><section class="card"><header>Players to register <span>${r.picked.length} picked</span></header><div class="pad"><div class="row">${S.members.filter(m=>m.role!=='Owner').map(m=>`<label class="chip ${r.picked.includes(m.n)?'ok':'mu'}" style="cursor:pointer;font-size:14px;padding:5px 11px"><input type="checkbox" data-a="regpick" data-v="${esc(m.n)}" ${r.picked.includes(m.n)?'checked':''} style="margin:0 6px 0 0">${esc(m.n)}</label>`).join('')}</div><p class="sub" style="font-size:13.5px">Only registered players can be picked for league games. You can add more during the season.</p></div></section>
+  <section class="card"><header>What the league can see <span>You decide, as the players' home club</span></header>
+   <label class="tog"><span><b>Name and photo</b><br><span class="s">Needed for team sheets</span></span><input type="checkbox" class="sw" checked disabled></label>
+   <label class="tog"><span><b>Date of birth</b><br><span class="s">Some leagues need it for age rules</span></span><input type="checkbox" class="sw" data-reg="dob" ${r.dob?'checked':''}></label>
+   <label class="tog"><span><b>Email and mobile</b><br><span class="s">Most clubs leave this off; the league contacts you</span></span><input type="checkbox" class="sw" data-reg="contact" ${r.contact?'checked':''}></label>
+   <div class="pad sub" style="font-size:13.5px">Players are told what you shared. Nothing else leaves the club.</div></section></div>
+  <div class="row" style="margin-top:14px"><button class="btn pri" data-a="regsend" ${r.picked.length<4?'disabled':''}>Send to the league</button><button class="btn" data-a="regcancel">Back</button><span class="sub" style="font-size:13.5px">At least 4 players, for two doubles pairs.</span></div>`;
+ return hd('Connections','Link with other clubs to play them, and join leagues and associations for official games.')+
+ `${inCount()?`<section class="card" style="margin-bottom:14px;border-color:#f1c26b"><header>Waiting for you <span>${inCount()}</span></header>
+   ${S.leagueIn?`<div class="li"><span class="av" style="background:#991b1b">IM</span><div class="m"><div class="t">${esc(S.leagueIn.n)} invites you to join</div><div class="s">${esc(S.leagueIn.season)} · starts ${esc(S.leagueIn.starts)} · league games count officially</div></div><button class="btn sm pri" data-a="lgaccept">Accept</button><button class="btn sm" data-a="lgdecline">Decline</button></div>`:''}
+   ${S.peerIn.map(p=>`<div class="li"><span class="av" style="background:#1e40af">${ini(p.n)}</span><div class="m"><div class="t">${esc(p.n)} wants to link clubs</div><div class="s">${esc(p.city)} · ${esc(p.when)} · to play each other</div></div><button class="btn sm pri" data-a="peeracc" data-v="${esc(p.n)}">Accept</button><button class="btn sm" data-a="peerdec" data-v="${esc(p.n)}">Decline</button></div>`).join('')}
+ </section>`:''}
+ <div class="grid g2">
+  <section class="card"><header>Leagues and associations <span>Official games</span></header>
+   ${S.leagues.map(l=>`<div class="li"><span class="av" style="background:#991b1b">${ini(l.n)}</span><div class="m"><div class="t">${esc(l.n)}</div><div class="s">${esc(l.season)} · ${l.players} players registered</div></div><span class="chip ok">Member</span><button class="btn sm" data-a="unlinkl" data-v="${esc(l.n)}">Leave</button></div>`).join('')||'<div class="pad sub">Not in a league yet.</div>'}
+   <div class="pad" style="border-top:1px solid var(--line)"><b>Ask to join</b><div class="li" style="padding:8px 0;border:0"><div class="m"><div class="t">Ho Chi Minh City Pickleball Association</div><div class="s">City association · confirms clubs and runs city tournaments</div></div><button class="btn sm" data-a="toast" data-m="Request sent. The association checks the club and replies in Connections">Ask to join</button></div>
+   <p class="sub" style="font-size:13.5px;margin:0">Only leagues and associations for your sport and area are listed. Others can invite you with a link.</p></div></section>
+  <section class="card"><header>Peer clubs <span>Friendly or recorded games</span></header>
+   ${S.peers.map(p=>`<div class="li"><span class="av" style="background:#1e40af">${ini(p.n)}</span><div class="m"><div class="t">${esc(p.n)}</div><div class="s">${esc(p.city)} · ${p.st==='Linked'?'linked '+esc(p.since):'waiting for them to accept'}</div></div>${p.st==='Linked'?`<button class="btn sm pri" data-a="game" data-v="${esc(p.n)}">Set up a game</button><button class="btn sm" data-a="unlinkp" data-v="${esc(p.n)}">Unlink</button>`:'<span class="chip mu">Sent</span>'}</div>${S.game&&S.game.with===p.n?gameForm():''}`).join('')||'<div class="pad sub">No linked clubs yet.</div>'}
+   <div class="pad" style="border-top:1px solid var(--line)"><label class="f">Link with a club: type its full name or club code<input type="search" id="cq" value="${esc(S.cq||'')}" placeholder="e.g. Thu Duc Pickleball Club or TPC-7702"></label>
+    ${hits.map(([n,c])=>`<div class="li" style="padding:8px 0;border:0"><div class="m"><div class="t">${esc(n)} <span class="chip ok" style="font-size:11.5px">✓ Verified</span></div><div class="s">Pickleball · Ho Chi Minh City · ${c}</div></div><button class="btn sm pri" data-a="peerreq" data-v="${esc(n)}">Send link request</button></div>`).join('')}
+    ${q.length>=3&&!hits.length?'<p class="sub" style="font-size:13.5px">No verified pickleball club in your area matches. Ask them for their club code.</p>':''}
+    <p class="sub" style="font-size:13.5px;margin:6px 0 0">Your club code is <b>TDP-4410</b>. Linked clubs see your club name, website and fixtures, never your members' details.</p></div></section>
+ </div>
+ <div class="help" style="margin-top:14px"><b>Leaving is always possible.</b> Either side can unlink at any time. Past results stay on both websites.</div>`;
+}
+function support(){
+ if(!S.supportOn) return hd('Player support','Turned off for this club. You can turn it back on at any time.')+supSwitch()+`<div class="help"><b>What happens to campaigns already running?</b> They keep running on the players' own Fannet pages, so backers aren't let down. They're just no longer linked to the club.</div>`;
+ const raised=S.camps.reduce((a,c)=>a+c.got,0), backers=S.camps.reduce((a,c)=>a+c.backers,0);
+ const others=S.members.filter(m=>!S.camps.some(c=>c.n===m.n)&&m.role!=='Owner');
+ return hd('Player support','Fans, family and local businesses back your players through Fannet. This is what Fannet is built for.',`<button class="btn pri" data-a="toast" data-m="Club page of all campaigns copied as a link to share">Share all campaigns</button>`)+
+ supSwitch()+`<div class="help"><b>How it works.</b> A player starts a campaign in their Fannet app for something real, like kit, travel or a cup entry. They set a goal and offer 3 or more thank-yous to backers. You can't start one in a player's name, but you can suggest it, share it and show it on the club website.</div>
+ <div class="kpis"><div class="kpi"><div class="l">Live campaigns</div><div class="v">${S.camps.length}</div><div class="s">From your members</div></div><div class="kpi"><div class="l">Raised so far</div><div class="v">${money(raised)}</div><div class="s">From ${backers} backers</div></div><div class="kpi"><div class="l">Fee on each dollar</div><div class="v" style="font-size:20px">Fannet 20% · club 5%</div><div class="s">The player gets 75%</div></div></div>
+ <section class="card"><header>Live campaigns <span>Players own their campaigns</span></header><div class="wrap"><table><thead><tr><th>Player</th><th>Campaign</th><th>Raised</th><th class="num">Backers</th><th>Ends</th><th>On website</th><th></th></tr></thead><tbody>
+  ${S.camps.map((c,i)=>`<tr><td>${esc(c.n)}</td><td style="white-space:normal"><b>${esc(c.t)}</b><div class="sub" style="font-size:13px">${esc(c.why)}</div></td><td style="min-width:150px">${money(c.got)} of ${money(c.goal)}<div class="bar" style="margin-top:4px"><i style="width:${Math.min(100,c.got/c.goal*100)}%"></i></div></td><td class="num">${c.backers}</td><td>${c.ends}</td><td><input type="checkbox" class="sw" data-camp="${i}" ${c.web?'checked':''} aria-label="Show ${esc(c.n)}'s campaign on the website"></td><td><button class="btn sm" data-a="toast" data-m="Link to ${esc(c.n)}'s campaign copied">Share</button> <button class="btn sm" data-a="toast" data-m="Posted to members' News: back ${esc(c.n)}!">Post to News</button></td></tr>`).join('')}
+ </tbody></table></div></section>
+ <div class="grid g2" style="margin-top:14px">
+  <section class="card"><header>Suggest a campaign to a player <span>They decide</span></header><div class="pad grid" style="gap:10px">
+   <label class="f">Player<select id="sg-p">${others.map(m=>`<option ${S.asked.includes(m.n)?'disabled':''}>${esc(m.n)}</option>`).join('')}</select></label>
+   <label class="f">What for (they can change it)<input type="text" id="sg-w" value="Entry and travel for the Da Nang Amateur Open"></label>
+   <div><button class="btn pri" data-a="suggest">Send the suggestion</button></div>
+   ${S.asked.length?`<p class="sub" style="margin:0;font-size:13.5px">Suggested to: ${S.asked.map(esc).join(', ')}. They'll see it in their app with a "Start a campaign" button.</p>`:''}</div></section>
+  <section class="card"><header>What the club can't see</header><div class="pad sub" style="font-size:14px">Backers' contact details and card details stay with Fannet. You see names (unless a backer chose to stay anonymous) and totals. Money goes to the player's own account, not the club's, apart from the club's 5%.</div></section>
+ </div>`;
+}
+function sitePrev(){
+ const s=S.site;
+ return `<div class="site"><div class="bar2"><i></i><i></i><i></i><span style="margin-left:6px">${L}</span></div>
+ <div class="hero"><div class="crest" style="background:rgba(255,255,255,.18);margin-bottom:10px">${S.logo?'🏓':'TD'}</div><h2>Thao Dien Pickleball Club</h2><div style="opacity:.85">Pickleball · Ho Chi Minh City</div><span style="display:inline-block;margin-top:10px">${vchip()}</span></div>
+ <div class="nav"><span>Home</span>${s.sessions?'<span>Sessions</span>':''}${s.results?'<span>Results</span>':''}<span>Players</span>${s.news?'<span>News</span>':''}<span>Join us</span><span>Contact</span></div>
+ ${s.sessions?`<div class="sec"><h4>Next session</h4>${S.events[0]?`<b>${esc(S.events[0].t)}</b> · ${esc(S.events[0].d)}, ${esc(S.events[0].time)}`:'None yet'}</div>`:''}
+ ${s.results&&S.results[0]?`<div class="sec"><h4>Latest result</h4>${resLi(S.results[0]).replace('class="li"','style="display:flex;gap:8px"')} ${gchip(S.results[0])}</div>`:''}
+ <div class="sec"><h4>Players</h4>${s.kids?'<span class="sub">Children\'s names and photos are hidden.</span>':`<div class="row">${S.members.slice(0,8).map(m=>`<span class="av" title="${esc(m.n)}" style="${s.photos?'':'background:#94a3b8'}">${s.photos?ini(m.n):''}</span>`).join('')}</div><div class="sub" style="font-size:13px;margin-top:4px">${s.photos?'Names and photos only.':'Names only, no photos.'} No contact details.</div>`}</div>
+ ${S.supportOn&&s.support&&S.camps.some(c=>c.web)?`<div class="sec"><h4>Support our players</h4>${S.camps.filter(c=>c.web).map(c=>`<div style="margin-top:4px"><b>${esc(c.n)}</b>: ${esc(c.t)} <span class="sub">${money(c.got)} of ${money(c.goal)}</span> <span class="btn sm pri">Back ${esc(c.n.split(' ')[0])}</span></div>`).join('')}</div>`:''}
+ ${s.news&&S.news[0]?`<div class="sec"><h4>News</h4><b>${esc(S.news[0].t)}</b></div>`:''}
+ ${s.fees?`<div class="sec"><h4>Fees</h4>Season fee ${money(S.fee)}</div>`:''}
+ <div class="sec"><h4>Join us</h4><span class="btn pri">Join Thao Dien Pickleball Club</span></div></div>`;
+}
+function website(){
+ const T=[...(S.supportOn?[['support','Show player support campaigns','Fans can back your players from the website']]:[]),['sessions','Show sessions and matches','Days, times and places of what is coming up'],['results','Show results','Club game scores'],['news','Show news','Posts you mark "Show on website"'],['photos','Show players\' photos','Turn off to show names only'],['fees','Show the season fee','Helps new people decide before they join'],['kids','This is a kids\' club','Hides every child\'s name and photo']];
+ if(!S.apps.website)return hd('Website',`Your club's public page is turned off.`,'')+`<section class="card"><header>Public website is off <span class="chip mu">Private club</span></header><div class="pad sub" style="font-size:14px">Nobody can find the club online and ${L} shows "This club is private". Members still use the apps, invite links still work, and your league still sees what you share in Connections.<div class="row" style="margin-top:10px"><button class="btn pri" data-a="siteon">Turn the website on</button></div></div></section>`;
+ return hd('Website',`Your club's public page at ${L}. It updates by itself from this control panel.`,`<a class="btn" href="#" data-a="toast" data-m="Opens ${L} in a new tab">Open website</a><button class="btn" data-a="siteoff">Turn off</button>`)+
+ `<div class="grid g3"><div>${sitePrev()}</div><div class="grid" style="align-content:start">
+  <section class="card"><header>What visitors see</header>${T.map(([k,t,s])=>`<label class="tog"><span><b>${t}</b><br><span class="s">${s}</span></span><input type="checkbox" class="sw" data-site="${k}" ${S.site[k]?'checked':''}></label>`).join('')}</section>
+  <section class="card"><header>Never shown</header><div class="pad sub" style="font-size:14px">Emails, phone numbers, dates of birth and ID. Messages from the Contact form go to the club's inbox in the app.</div></section>
+  <section class="card"><header>Verified badge ${vchip()}</header><div class="pad sub" style="font-size:14px">${S.verifiedBy?`Confirmed by ${esc(S.verifiedBy)} when the club joined.`:'Your league, association or Fannet confirms the club is real. Until then the site says "Not yet verified".'}${S.verifiedBy?'':'<div class="row" style="margin-top:8px"><a class="btn sm" href="#connections">Join a league or association</a></div>'}</div></section>
+ </div></div>`;
+}
+function news(){
+ return hd('News','Posts go to members\' News in the app, and to the website if you choose.')+
+ `<div class="grid g3"><section class="card"><header>Write a post</header><div class="pad grid" style="gap:10px">
+  <label class="f">Title<input type="text" id="n-t" value="Sunday 11 Oct: open play then a round robin"></label>
+  <label class="f">Post<textarea id="n-b">Open play from 6:30, then the doubles round robin at 8:30. Pairs and courts are in the app. Bring water, it'll be hot!</textarea></label>
+  <label class="row" style="font-weight:600"><input type="checkbox" id="n-w" checked> Show on the website too</label>
+  <div><button class="btn pri" data-a="post">Post it</button></div></div></section>
+  <section class="card" style="align-self:start"><header>Posted <span>${S.news.length}</span></header>${S.news.map(p=>`<div class="li"><div class="m"><div class="t">${esc(p.t)}</div><div class="s">${p.d} · ${esc(p.by)}</div></div>${p.web?'<span class="chip ok">On website</span>':'<span class="chip mu">Members only</span>'}</div>`).join('')}</section></div>`;
+}
+function fees(){
+ const paid=S.members.filter(m=>m.fee), fn=S.payVia==='fannet', fee=S.fee, cut=+(fee*0.05).toFixed(2), pass=!!S.passOn;
+ const opt=(k,t,d)=>`<label class="tog" style="cursor:pointer"><span><b>${t}</b><br><span class="s">${d}</span></span><input type="radio" name="payvia" value="${k}" ${S.payVia===k?'checked':''} style="width:20px;height:20px;accent-color:var(--green)"></label>`;
+ return hd('Fees',fn?'Members pay the season fee through Fannet. Paid members are ticked off by themselves.':'Keep track of who has paid the club. Members pay you the way they do now.')+
+ `<section class="card" style="margin-bottom:14px"><header>How members pay</header>
+  ${opt('club','Pay the club directly','Cash, bank transfer, however you do it now. Free. You tick off who has paid.')}
+  ${opt('fannet','Pay through Fannet','Members pay by card in the app. Fannet charges 5% plus the card transaction fee, and sends the rest to the club\'s bank account.')}
+  ${fn?`<div class="pad" style="background:var(--row)"><div class="grid g2" style="gap:12px">
+   <div><b>On a ${money(fee)} fee</b><table style="margin-top:6px"><tbody>
+    <tr><td>Member pays</td><td class="num">${money(pass?(fee+cut).toFixed(2):fee.toFixed(2))}${pass?' + card fee':''}</td></tr>
+    <tr><td>Fannet fee (5%)</td><td class="num">−${money(cut.toFixed(2))}</td></tr>
+    <tr><td>Card transaction fee</td><td class="num">${pass?'paid by member':'shown at checkout'}</td></tr>
+    <tr><td><b>Club receives</b></td><td class="num"><b>${money(pass?fee.toFixed(2):(fee-cut).toFixed(2))}${pass?'':' less card fee'}</b></td></tr></tbody></table></div>
+   <div class="grid" style="gap:10px;align-content:start">
+    <label class="row" style="font-weight:600"><input type="checkbox" id="passon" ${pass?'checked':''}> Add the fees on top of what members pay</label>
+    <label class="f">Club bank account for payouts<input type="text" value="Thao Dien Pickleball Club · ••• 4821" disabled></label>
+    <p class="sub" style="margin:0;font-size:13.5px">Paid out every Monday. Card details stay with Fannet's payment provider; the club never sees them.</p></div></div></div>`:''}
+ </section>
+ <div class="kpis"><div class="kpi"><div class="l">Season fee</div><div class="v">${money(fee)}</div><div class="s">Per member, 2026 season</div></div><div class="kpi"><div class="l">Paid</div><div class="v">${paid.length} of ${S.members.length}</div><div class="s">${money(paid.length*fee)} collected</div></div><div class="kpi"><div class="l">Not yet</div><div class="v" style="color:#b45309">${S.members.length-paid.length}</div><div class="s">${money((S.members.length-paid.length)*fee)} to come</div></div></div>
+ <section class="card"><header>Who has paid <button class="btn sm pri" data-a="remind" ${S.members.length===paid.length?'disabled':''}>${fn?'Send a payment link to':'Send a reminder to'} those who haven't</button></header><div class="wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>How</th><th></th></tr></thead><tbody>
+  ${S.members.map(m=>`<tr><td>${esc(m.n)}</td><td>${m.role}</td><td>${m.fee?'<span class="chip ok">Paid</span>':'<span class="chip wa">Not yet</span>'}</td><td>${m.fee?(m.via==='fannet'?'Through Fannet':'To the club'):'<span class="sub">–</span>'}</td><td>${m.via==='fannet'&&m.fee?'<span class="sub">Ticked by Fannet</span>':`<button class="btn sm" data-a="paid" data-v="${esc(m.n)}">${m.fee?'Mark not paid':'Mark as paid'}</button>`}</td></tr>`).join('')}
+ </tbody></table></div></section>`;
+}
+const APPS=[['organizer','Organizer app','You and your helpers','Run the club from your phone: invites, sessions, scores, approvals.',true],
+ ['player','Player app','Your members','See sessions and say if they\'re coming, get teams, results, news and the club chat.'],
+ ['fan','Fan app','Family, friends and fans','Follow the club, see results and back your players. Needs player support on to back players.'],
+ ['captain','Captain role','Inside the Player app','Not a separate app. A player you make Captain (in Members) gets extra buttons in their Player app for that game or the season: pick the side, and confirm the score with the other club.'],
+ ['officials','Officials app','Referees you invite','Take assignments for league and recorded games, and enter the official score.'],
+ ['website','Public website','Anyone online','Your club page at '+L+': sessions, results, news and how to join. Turn off to keep the club private. Members still use the apps and invite links still work.']];
+const appsCard=()=>`<section class="card" id="apps" style="grid-column:1/-1"><header>Fannet apps for your club <span>Turn on only what your club needs</span></header>
+ ${APPS.map(([k,t,who,d,fixed])=>`<label class="tog"><span><b>${t}</b> <span class="chip mu">${who}</span><br><span class="s">${d}</span></span>${fixed?'<span class="chip ok">Always on</span>':`<input type="checkbox" class="sw" data-app="${k}" ${S.apps[k]?'checked':''} aria-label="${t}">`}</label>`).join('')}
+ <div class="tog"><span><b>Sign-up and ID check</b><br><span class="s">Always on. Everyone joins through it, whichever app they use.</span></span><span class="chip ok">Always on</span></div>
+ <div class="pad" style="background:var(--row)"><div class="row"><button class="btn sm" data-a="toast" data-m="A poster with QR codes for the apps you turned on, ready to print">Print app QR poster</button><span class="sub" style="font-size:13.5px">Members get the right app from their invite link. Nothing to set up on their side.</span></div></div></section>`;
+function settings(){
+ return hd('Settings','Which Fannet apps your club uses, club details, and who can help run the club.')+
+ `<div class="grid g2">${appsCard()}<section class="card"><header>Club details</header><div class="pad grid" style="gap:10px">
+  <label class="f">Club name<input type="text" value="Thao Dien Pickleball Club"></label>
+  <label class="f">Sport<input type="text" value="Pickleball" disabled></label>
+  <label class="f">Town or city<input type="text" value="Ho Chi Minh City"></label>
+  <div class="row"><span class="crest" style="width:48px;height:48px">${S.logo?'🏓':'TD'}</span><button class="btn" data-a="logo">${S.logo?'Change logo':'Add your logo'}</button><button class="btn" data-a="toast" data-m="Pick the club colours for the app and website">Club colours</button></div>
+  <div><button class="btn pri" data-a="toast" data-m="Saved">Save</button></div></div></section>
+  <section class="card"><header>Helpers <span>People who can help run the club</span></header>
+   <div class="li"><span class="av">JP</span><div class="m"><div class="t">Linh Nguyen</div><div class="s">Owner · everything</div></div></div>
+   ${S.helpers.map(h=>`<div class="li"><span class="av">${ini(h.n)}</span><div class="m"><div class="t">${esc(h.n)}</div><div class="s">Helper · ${esc(h.can)}</div></div><button class="btn sm" data-a="toast" data-m="Choose what ${esc(h.n)} can change">Change</button></div>`).join('')}
+   <div class="pad"><button class="btn" data-a="toast" data-m="Pick a member to make a helper">Add a helper</button><p class="sub" style="font-size:13.5px">Helpers see members' contact details. Only give this to people you trust.</p></div></section>
+  <section class="card"><header>Player support funding <a class="btn sm" href="#support">Manage</a></header><div class="pad">${supSwitch().replace('margin-bottom:14px','margin:0').replace('id="sup-on"','id="sup-on2"')}</div></section>
+  <section class="card"><header>Hand over the club</header><div class="pad sub" style="font-size:14px">Leaving? Make another member the owner. They do a quick ID check first.<div class="row" style="margin-top:8px"><button class="btn sm" data-a="toast" data-m="Pick the new owner">Choose a new owner</button></div></div></section>
+  <section class="card"><header>Mock-up</header><div class="pad"><button class="btn" data-a="reset">Reset the demo data</button></div></section></div>`;
+}
+
+function render(){
+ const p=page();
+ $('#links').innerHTML=PAGES.map(([k,l])=>`<a href="#${k}" ${k===p?'aria-current="page"':''}>${l}${k==='invites'&&S.requests.length?`<span class="n">${S.requests.length}</span>`:''}${k==='connections'&&inCount()?`<span class="n">${inCount()}</span>`:''}</a>`).join('');
+ $('#main').innerHTML=({overview,members,invites,calendar,results,connections,support,website,news,fees,settings})[p]();
+ $('#layer').innerHTML=S.open?drawer(S.open):'';
+ document.title=PAGES.find(x=>x[0]===p)[1]+' · Pickleball Club Control Panel';
+ save();
+}
+const split=L=>{const a=[...L];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return[a.filter((_,i)=>i%2==0),a.filter((_,i)=>i%2==1)]};
+addEventListener('hashchange',()=>{S.draft=null;S.open=null;render();scrollTo(0,0)});
+document.addEventListener('input',e=>{if(e.target.id==='cq'){S.cq=e.target.value;const pos=e.target.selectionStart;render();const q=$('#cq');q.focus();q.setSelectionRange(pos,pos);return;}if(e.target.id==='q'){S.q=e.target.value;const pos=e.target.selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(pos,pos);}});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.app){S.apps[t.dataset.app]=t.checked;render();toast(`${APPS.find(a=>a[0]===t.dataset.app)[1]} turned ${t.checked?'on':'off'} for the club`);}
+ else if(t.dataset.a==='regpick'){const r=S.reg,n=t.dataset.v;r.picked=t.checked?[...r.picked,n]:r.picked.filter(x=>x!==n);render();}
+ else if(t.dataset.reg){S.reg[t.dataset.reg]=t.checked;render();}
+ else if(t.name==='gtype'){S.game.type=t.value;render();}
+ else if(t.name==='payvia'){S.payVia=t.value;render();toast(t.value==='fannet'?'Members can now pay through Fannet':'Members pay the club directly');}
+ else if(t.id==='passon'){S.passOn=t.checked;render();}
+ else if(t.id==='sup-on'||t.id==='sup-on2'){S.supportOn=t.checked;render();toast(t.checked?'Player support turned on for the club':'Player support turned off for the club');}
+ else if(t.dataset.camp){S.camps[+t.dataset.camp].web=t.checked;render();toast(t.checked?'Shown on the website':'Hidden from the website');}
+ else if(t.dataset.site){S.site[t.dataset.site]=t.checked;render();toast('Website updated');}
+ else if(t.dataset.k==='role'){S.members.find(m=>m.n===t.dataset.v).role=t.value;render();toast('Role changed');}
+ else if(t.dataset.a==='pick'){const d=S.draft,n=t.dataset.v;d.picked=t.checked?[...d.picked,n]:d.picked.filter(x=>x!==n);render();}});
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-a]');if(!el||el.tagName==='INPUT')return;
+ if(el.classList.contains('drawer')&&e.target.closest('[data-stop]'))return;
+ const a=el.dataset.a,v=el.dataset.v;
+ if(el.tagName==='A')e.preventDefault();
+ if(a==='toast'){toast(el.dataset.m);return;}
+ if(a==='approve'){S.requests=S.requests.filter(r=>r.n!==v);S.members.push({n:v,role:'Player',joined:'Today',email:'',mob:'',fee:false,came:0});toast(`${v} is in the club`);}
+ else if(a==='decline'){S.requests=S.requests.filter(r=>r.n!==v);toast(`${v} was told the club can't take them right now`);}
+ else if(a==='open'){S.open=v;}
+ else if(a==='close'){S.open=null;}
+ else if(a==='remove'){S.members=S.members.filter(m=>m.n!==v);S.open=null;toast(`${v} removed. They can still see their own past games`);}
+ else if(a==='msg'){toast(`Opens a chat with ${v} in the app`);return;}
+ else if(a==='siteon'||a==='siteoff'){S.apps.website=a==='siteon';render();toast(`Public website turned ${S.apps.website?'on':'off'}`);return;}
+ else if(a==='export'){toast('Members list downloaded as a spreadsheet. Keep it private');return;}
+ else if(a==='sample'){$('#plist').value='Ha Phan, ha.phan@example.com\nTuan Vu, +84 900 000 0007\nKim Dinh, kim.dinh@example.com';return;}
+ else if(a==='sendp'){const L2=$('#plist').value.split('\n').map(l=>l.split(',').map(x=>x.trim())).filter(x=>x[0]&&x[1]);if(!L2.length){toast('Add a name and an email or mobile on each line');return;}L2.forEach(([n,to])=>{if(!S.invites.some(i=>i.n===n))S.invites.unshift({n,to,sent:'Today',st:'Sent'})});toast(`${L2.length} personal invite${L2.length>1?'s':''} sent`);}
+ else if(a==='newev'){S.draft={type:'ev',kind:v};}
+ else if(a==='newmatch'){S.draft={type:'match',stage:0,picked:S.members.slice(0,8).map(m=>m.n),P:[]};}
+ else if(a==='cancel'){S.draft=null;}
+ else if(a==='saveev'){const d=S.draft;S.events.push({id:Date.now(),kind:d.kind,t:$('#ev-t').value||'Session',d:$('#ev-d').value,time:$('#ev-time').value,place:$('#ev-p').value,going:0,no:0,repeat:$('#ev-r').value});S.draft=null;toast('Added. Members can now say if they\'re coming');}
+ else if(a==='split'){const d=S.draft;if(d.picked.length<4||d.picked.length%2)return;const x=split(d.picked);d.P=x[0].map((n,i)=>[n,x[1][i]]);d.stage=1;}
+ else if(a==='move'){const d=S.draft;if(d.A.includes(v)){d.A=d.A.filter(x=>x!==v);d.B.push(v)}else{d.B=d.B.filter(x=>x!==v);d.A.push(v)}}
+ else if(a==='savematch'){const d=S.draft;S.events.push({id:Date.now(),kind:'Club match',t:'Doubles round robin',d:'Sun 18 Oct',time:'8:30 am',place:'Thao Dien Courts, courts 1–4',going:d.picked.length,no:0,repeat:''});S.draft=null;toast(`${d.picked.length} players told their partner, courts and times`);}
+ else if(a==='post'){S.news.unshift({t:$('#n-t').value||'Club news',d:'Today',web:$('#n-w').checked,by:'Linh Nguyen'});toast($('#n-w').checked?'Posted to members and the website':'Posted to members');}
+ else if(a==='paid'){const m=S.members.find(x=>x.n===v);m.fee=!m.fee;}
+ else if(a==='remind'){const due=S.members.filter(m=>!m.fee);if(S.payVia==='fannet'){due[0].fee=true;due[0].via='fannet';toast(`Payment link sent to ${due.length} members. ${due[0].n} has already paid`);}else{toast(`Reminder sent to ${due.length} members`);return;}}
+ else if(a==='lgaccept'){S.reg={picked:S.members.filter(m=>m.role!=='Owner').slice(0,8).map(m=>m.n),dob:true,contact:false};}
+ else if(a==='lgdecline'){toast(`Told ${S.leagueIn.n} you can't join this season`);S.leagueIn=null;}
+ else if(a==='regcancel'){S.reg=null;}
+ else if(a==='regsend'){const L=S.leagueIn;S.leagues.push({n:L.n,season:L.season,players:S.reg.picked.length});S.verifiedBy=L.n;S.events.push({id:Date.now(),kind:'League',t:'League round 1: Thao Dien Pickleball Club v Go Vap Pickleball',d:'Sat 31 Oct',time:'2:00 pm',place:'Phu Tho Indoor Courts',going:0,no:0,repeat:''},{id:Date.now()+1,kind:'League',t:'League round 2: Tan Binh Smashers v Thao Dien Pickleball Club',d:'Sat 7 Nov',time:'3:00 pm',place:'Tan Binh Sports Centre',going:0,no:0,repeat:''});S.leagueIn=null;S.reg=null;toast('Joined. League fixtures are in your Calendar and your website shows Verified');}
+ else if(a==='peeracc'){S.peerIn=S.peerIn.filter(p=>p.n!==v);S.peers.push({n:v,city:'Ho Chi Minh City',since:'today',st:'Linked'});toast(`Linked with ${v}`);}
+ else if(a==='peerdec'){S.peerIn=S.peerIn.filter(p=>p.n!==v);toast(`Declined. ${v} isn't told why`);}
+ else if(a==='peerreq'){S.peers.push({n:v,city:'Ho Chi Minh City',since:'',st:'Sent'});S.cq='';toast(`Link request sent to ${v}`);}
+ else if(a==='unlinkp'){S.peers=S.peers.filter(p=>p.n!==v);toast(`Unlinked from ${v}. Past friendlies stay`);}
+ else if(a==='unlinkl'){S.leagues=S.leagues.filter(p=>p.n!==v);S.verifiedBy='';toast(`Left ${v}. Past results stay`);}
+ else if(a==='game'){S.game={with:v,type:'Friendly'};}
+ else if(a==='gamecancel'){S.game=null;}
+ else if(a==='gamesend'){const g=S.game,home=$('#g-w').value.startsWith('Home');S.events.push({id:Date.now(),kind:g.type,t:`${g.type==='Recorded'?'Recorded game':'Friendly'} v ${g.with}`,d:$('#g-d').value,time:'10:00 am',place:home?'Thao Dien Courts, courts 1–4':`${g.with} home ground`,going:0,no:0,repeat:''});toast(`${g.type} game sent to ${g.with}. It's in both calendars once they accept`);S.game=null;}
+ else if(a==='suggest'){const n=$('#sg-p').value;if(!n)return;S.asked.push(n);toast(`Suggestion sent to ${n}`);}
+ else if(a==='logo'){S.logo=true;toast('Logo added to the app and website');}
+ else if(a==='reset'){S=SEED();toast('Demo data reset');}
+ else return;
+ render();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.open){S.open=null;render();}});
+render();
+</script>
+</body>
+</html>

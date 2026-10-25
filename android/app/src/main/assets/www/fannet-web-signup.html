@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fannet organization sign-up</title>
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--ink:#0f172a;--mute:#475162;--line:#e3e8ef;--row:#f7f9fc;--focus:#2563eb;
+--green:#12613f;--green-2:#1b7d52;--green-bg:#e3f4ea;--ok-bg:#dcfce7;--ok:#166534;--wa-bg:#fef3c7;--wa:#92400e;--in-bg:#dbeafe;--in:#1e40af;--red:#d0102b}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button,input{font:inherit}
+.guide{background:#fff7d6;color:#5b4300;font-size:13.5px;padding:8px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.guide b{margin-right:4px}
+.guide button{border:1px solid #e4cf86;background:#fff;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;cursor:pointer;color:#5b4300}
+.guide button[aria-pressed=true]{background:#5b4300;color:#fff;border-color:#5b4300}
+header.site{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:12px 20px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.01em}
+.mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#7a0a1c,#d0102b);color:#fff;display:grid;place-items:center;font-size:15px}
+header.site nav{margin-left:auto;display:flex;gap:6px}
+.tab{border:0;background:none;padding:7px 12px;border-radius:8px;font-weight:600;color:var(--mute);cursor:pointer}
+.tab[aria-current=page]{background:var(--ink);color:#fff}
+main{max-width:1060px;margin:0 auto;padding:26px 20px 40px;display:grid;grid-template-columns:230px 1fr;gap:26px;align-items:start}
+main>*{min-width:0}
+@media (max-width:820px){main{grid-template-columns:1fr;gap:14px;padding-top:16px}.rail{display:flex;overflow-x:auto;gap:6px}.rail li{white-space:nowrap}}
+.rail{list-style:none;margin:0;padding:0}
+.rail li{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;color:var(--mute);font-weight:600;font-size:14.5px}
+.rail li .d{width:24px;height:24px;border-radius:50%;border:2px solid #c9d0da;display:grid;place-items:center;font-size:12px;flex:none}
+.rail li.on{background:#fff;color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.rail li.on .d{border-color:var(--red);color:var(--red)}
+.rail li.done .d{background:var(--green);border-color:var(--green);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px 28px}
+@media (max-width:520px){.card{padding:18px 16px}}
+h1{font-size:25px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 18px}
+.opts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px 16px;cursor:pointer}
+.opt b{display:block;font-size:16px}
+.opt span{color:var(--mute);font-size:14px}
+.opt:hover{border-color:#b8c1cd}
+.opt.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--ink)}
+.famh{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px;margin-bottom:14px}
+input[type=text],input[type=email],input[type=tel]{border:1px solid #c9d0da;border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);width:100%}
+.two{display:grid;grid-template-columns:120px 1fr;gap:10px}
+.code{display:flex;gap:8px}
+.code input{width:46px;text-align:center;font-size:20px;font-weight:700;padding:8px 0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--row)}
+.btn.pri{background:var(--red);border-color:var(--red);color:#fff}
+.btn.pri:hover{background:#b30d25}
+.btn.grn{background:var(--green);border-color:var(--green);color:#fff}
+.btn[disabled]{opacity:.45;cursor:default}
+.link{background:none;border:0;color:var(--focus);font-weight:600;cursor:pointer;padding:0}
+.note{border-radius:11px;padding:12px 14px;font-size:14.5px;margin-top:16px}
+.note.in{background:var(--in-bg);color:#173a9c}
+.note.ok{background:var(--ok-bg);color:var(--ok)}
+.note.wa{background:var(--wa-bg);color:var(--wa)}
+.muted{color:var(--mute);font-size:14px}
+.hand{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+@media (max-width:640px){.hand{grid-template-columns:1fr;justify-items:center;text-align:left}}
+.qr{width:200px;height:200px;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;position:relative}
+.qr.dim svg{opacity:.15}
+.qr .ok{position:absolute;inset:0;display:grid;place-items:center;font-size:56px;color:var(--green)}
+.steps{list-style:none;padding:0;margin:0}
+.steps li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;color:var(--mute)}
+.steps li i{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid #c9d0da;flex:none;display:grid;place-items:center;font-size:12px;margin-top:1px}
+.steps li.now{color:var(--ink);font-weight:600}
+.steps li.now i{border-color:var(--red);border-top-color:transparent;animation:spin 1s linear infinite}
+.steps li.done{color:var(--ink)}
+.steps li.done i{background:var(--green);border-color:var(--green);color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.steps li.now i{animation:none}}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.kv span{color:var(--mute)}
+.share{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+.share label{display:flex;gap:10px;align-items:center;padding:5px 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:calc(100% - 32px);opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.stores{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.store{border:1px solid var(--ink);border-radius:9px;padding:6px 12px;font-weight:700;font-size:13px;background:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="guide"><b>Mock-up · Gamma build · organization sign-up on the Fannet website.</b> Individuals sign up only in the mobile app. Try as:
+ <button data-scn="club">Club (Jess Park)</button><button data-scn="league">Association (Priya Nair)</button><button data-scn="commission">Commission (Daniel Okafor)</button><button data-scn="login">Staff log in</button>
+ <span>All people and organizations are made up.</span></div>
+<header class="site"><div class="brand"><span class="mark">F</span>Fannet</div><nav><button class="tab" data-tab="signup">Sign up</button><button class="tab" data-tab="login">Log in</button></nav></header>
+<main><ol class="rail" id="rail"></ol><section class="card" id="view" aria-live="polite"></section></main>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const FAMS={pro:[["Combat",["Boxing","Muay Thai","Kickboxing"]],["Team",["Football","Basketball"]],["Racket",["Tennis"]]],
+ club:[["Combat",["Boxing","Muay Thai","Kickboxing"]],["Team",["Futsal","Football","Basketball"]],["Racket",["Pickleball","Tennis","Badminton"]]]};
+const TYPES=[["club","Club or gym","Run your club: members, sessions, games, fees and its website"],["league","League or association","Run competitions for member clubs: fixtures, results and registrations"],["commission","Commission","Licence combat athletes and officials, and sanction events"],["federation","Federation","Govern a sport: member bodies, rankings and national records"]];
+const TW={club:"club",league:"league or association",commission:"commission",federation:"federation"};
+const SCN={club:{email:"jess.park@example.com",phone:"412 555 019",name:"Jess Park",org:"Southbank Sunday FC",city:"Melbourne",pos:"Owner"},
+ league:{email:"priya.nair@example.com",phone:"413 555 640",name:"Priya Nair",org:"Metro Futsal Association",city:"Melbourne",pos:"Competitions secretary"},
+ commission:{email:"daniel.okafor@example.com",phone:"414 555 118",name:"Daniel Okafor",org:"Southern Combat Commission",city:"Melbourne",pos:"Registrar"}};
+let S,scn="club",tab="signup";
+function reset(k){scn=k;const d=SCN[k]||SCN.club;S={step:"account",email:d.email,phone:d.phone,codeSent:false,code:"",type:"",lvl:"",sports:[],
+ phone2:0,org:{name:"",city:d.city,pos:d.pos},login:0};tab=k==="login"?"login":"signup";render()}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),2600)}
+const tw=()=>TW[S.type]||"organization";
+function flow(){const f=[["account","Account"],["type","What you're setting up"]];
+ if(S.type==="league"||S.type==="federation")f.push(["level","Pro or club?"]);
+ f.push(["sport","Sports"],["verify","ID check on your phone"],["org","Your "+tw()],["done","Done"]);return f}
+function go(s){S.step=s;render();window.scrollTo(0,0)}
+function next(){const f=flow(),i=f.findIndex(x=>x[0]===S.step);go(f[i+1][0])}
+function back(){const f=flow(),i=f.findIndex(x=>x[0]===S.step);if(i>0)go(f[i-1][0])}
+function qr(){let r="",seed=7;const n=25,c=7.6;for(let y=0;y<n;y++)for(let x=0;x<n;x++){const fd=(x<7&&y<7)||(x>17&&y<7)||(x<7&&y>17);seed=(seed*9301+49297)%233280;
+ if(fd){const ax=x>17?x-18:x,ay=y>17?y-18:y;if(ax===0||ay===0||ax===6||ay===6||(ax>1&&ax<5&&ay>1&&ay<5))r+=`<rect x="${x*c}" y="${y*c}" width="${c}" height="${c}"/>`}
+ else if(seed/233280>.52)r+=`<rect x="${x*c}" y="${y*c}" width="${c}" height="${c}"/>`}
+ return `<svg viewBox="0 0 190 190" width="180" height="180" role="img" aria-label="QR code to open the Fannet app"><g fill="#0f172a">${r}</g></svg>`}
+const backBtn=()=>`<button class="btn" data-a="back">Back</button>`;
+const appBox=()=>`<div class="note wa"><b>Playing, coaching, managing or following?</b> People sign up in the Fannet mobile app, not on the website. Your club, league or commission can send you an invite link.
+ <div class="stores"><button class="store" data-a="toast" data-m="Opens the App Store">App Store</button><button class="store" data-a="toast" data-m="Opens Google Play">Google Play</button></div></div>`;
+const PHONE=[["Opened in the Fannet app","Scanning the code opens the app on your phone, linked to this sign-up."],["Reading your ID chip","Hold your passport or chip ID card to the back of the phone. The phone checks the government's signature."],["Selfie","The phone matches your face to the chip photo and checks you're really there."],["Verified on your phone","Only the result goes to Fannet. Your ID stays on the phone."]];
+const slug=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const V={
+account(){return `<h1>Set up your organization on Fannet</h1><p class="sub">For clubs, leagues, associations, commissions and federations. Start with the account of the person setting it up.</p>
+ <label class="f">Your email<input type="email" id="em" value="${esc(S.email)}" autocomplete="email"></label>
+ <label class="f">Your mobile<div class="two"><input type="text" value="+61" aria-label="Country code"><input type="tel" id="ph" value="${esc(S.phone)}" autocomplete="tel"></div></label>
+ ${S.codeSent?`<label class="f">6-digit code sent to ${esc(S.email)}<div class="code">${[0,1,2,3,4,5].map(i=>`<input type="text" inputmode="numeric" maxlength="1" value="${S.code[i]||""}" aria-label="Digit ${i+1}">`).join("")}</div></label>
+ <button class="link" data-a="fill">Fill the demo code</button>`:""}
+ <div class="actions">${S.codeSent?`<button class="btn pri" data-a="acct" ${S.code.length===6?"":"disabled"}>Continue</button>`:`<button class="btn pri" data-a="send">Send code</button>`}</div>
+ ${appBox()}`},
+type(){return `<h1>What are you setting up?</h1><p class="sub">You can add helpers and staff once it's set up.</p>
+ <div class="opts">${TYPES.map(([k,t,d])=>`<button class="opt ${S.type===k?"on":""}" data-a="type" data-v="${k}"><b>${t}</b><span>${d}</span></button>`).join("")}</div>
+ <div class="actions">${backBtn()}<button class="btn pri" data-a="next" ${S.type?"":"disabled"}>Continue</button></div>`},
+level(){return `<h1>Pro or club?</h1><p class="sub">Which level does your ${tw()} run?</p>
+ <div class="opts">${[["pro","Professional","Pro athletes and teams. You hold their records"],["club","Club","Amateur and hobby clubs and their members"]].map(([k,t,d])=>`<button class="opt ${S.lvl===k?"on":""}" data-a="lvl" data-v="${k}"><b>${t}</b><span>${d}</span></button>`).join("")}</div>
+ <div class="actions">${backBtn()}<button class="btn pri" data-a="next" ${S.lvl?"":"disabled"}>Continue</button></div>`},
+sport(){const fams=S.type==="commission"?FAMS.pro.slice(0,1):FAMS[S.lvl];return `<h1>Which sports?</h1><p class="sub">${S.type==="club"?"Pick the sports your club runs.":S.type==="commission"?"Pick the combat sports you licence.":"Pick the sports your "+tw()+" covers."} You can add more later.</p>
+ ${fams.map(([f,ss])=>`<div class="famh">${S.lvl==="club"?"Club":"Professional"} › ${f}</div><div class="chips">${ss.map(x=>`<button class="chip ${S.sports.includes(x)?"on":""}" data-a="sp" data-v="${x}">${x}</button>`).join("")}</div>`).join("")}
+ <p class="muted" style="margin-top:12px">More sports come next.</p>
+ <div class="actions">${backBtn()}<button class="btn pri" data-a="next" ${S.sports.length?"":"disabled"}>Continue</button></div>`},
+verify(){const p=S.phone2,doneAll=p>=4;
+ return `<h1>${doneAll?"ID checked":"Check your ID on your phone"}</h1><p class="sub">${doneAll?"Your phone confirmed it's you. Carry on here.":"The person setting up the "+tw()+" does one ID check. Scan this code with your phone's camera; the Fannet app does the check and this page moves on by itself."}</p>
+ <div class="hand"><div class="qr ${p>0?"dim":""}">${qr()}${doneAll?'<div class="ok" aria-hidden="true">✓</div>':""}</div>
+ <div><ol class="steps">${PHONE.map(([t,d],i)=>`<li class="${p>i+1||doneAll?"done":p===i+1?"now":""}"><i>${p>i+1||doneAll?"✓":i+1}</i><span><b>${t}</b><br><span class="muted">${d}</span></span></li>`).join("")}</ol>
+ ${p===0?`<p class="muted">Waiting for your phone…</p><button class="btn" data-a="sim">Demo: scan with my phone</button>
+ <div class="stores"><span class="muted" style="width:100%">No Fannet app yet? The code takes you to the store first.</span><button class="store" data-a="toast" data-m="Opens the App Store">App Store</button><button class="store" data-a="toast" data-m="Opens Google Play">Google Play</button></div>`:""}</div></div>
+ <div class="note in"><b>🔒 Your ID never touches this computer or Fannet.</b> The check happens on your phone and your ID stays there. Fannet keeps only the result. If you lose or change your phone, you will need to redo the ID check.</div>
+ <div class="actions">${backBtn()}<button class="btn pri" data-a="next" ${doneAll?"":"disabled"}>Continue</button></div>`},
+org(){const club=S.type==="club";return `<h1>Your ${tw()}</h1><p class="sub">${club?"Your club gets a control panel and a public website straight away.":"Your "+tw()+" gets its desk straight away. No documents to upload."}</p>
+ <label class="f">${club?"Club":"Organization"} name<input type="text" id="cn" value="${esc(S.org.name)}" placeholder="${club?"e.g. Southbank Sunday FC":"e.g. "+esc(SCN[scn]?.org||"")}"></label>
+ <label class="f">City<input type="text" id="cc" value="${esc(S.org.city)}"></label>
+ <label class="f">Your position<input type="text" id="cp" value="${esc(S.org.pos)}"></label>
+ <div class="kv"><span>Sports</span><b>${esc(S.sports.join(", "))}</b></div>
+ ${club?`<div class="kv"><span>Website address</span><b id="site">${esc(slug(S.org.name)||"your-club")}.fannet.club</b></div><p class="muted" style="margin-top:10px">You can turn the public website off in Settings if the club wants to stay private.</p>`
+ :`<div class="note in">Before your ${tw()} can confirm anyone's record or licence, Fannet checks it is the real body by contacting it through its public details. You can set up the desk and invite staff meanwhile.</div>`}
+ <div class="actions">${backBtn()}<button class="btn" data-a="demo">Fill the demo ${tw()}</button><button class="btn pri" data-a="mkorg">Create the ${tw()}</button></div>`},
+done(){const club=S.type==="club",nm=S.org.name;
+ if(club)return `<h1>${esc(nm)} is ready</h1><p class="sub">Your control panel and website are live. Next, invite your players. They join in the Fannet app with your link or club code.</p>
+  <div class="kv"><span>Control panel</span><b>On this computer, or the Organizer app</b></div><div class="kv"><span>Website</span><b>${esc(slug(nm))}.fannet.club</b></div><div class="kv"><span>Club code</span><b>SSFC-4821</b></div><div class="kv"><span>Verified</span><b>Not yet. Your league or association confirms the club</b></div>
+  <div class="actions"><a class="btn grn" href="fannet-club-desk.html">Open the control panel</a><a class="btn" href="fannet-organizer.html">Organizer app</a></div>`;
+ return `<h1>${esc(nm)} is set up</h1><p class="sub">Your desk is ready. Invite your staff, then send invite links to the people on your register. They sign up in the Fannet app.</p>
+  <div class="kv"><span>Desk</span><b>On this computer</b></div><div class="kv"><span>Sports</span><b>${esc(S.sports.join(", "))}</b></div><div class="kv"><span>Status</span><b><span class="chip" style="background:var(--wa-bg);color:var(--wa);border:0;cursor:default">Being checked by Fannet</span></b></div>
+  <div class="actions"><button class="btn grn" data-a="toast" data-m="Opens the ${tw()}'s desk">Open the desk</button><button class="btn" data-a="toast" data-m="Invite staff by email; they approve on their phone">Invite staff</button></div>`},
+login(){const L=S.login;return `<h1>Log in</h1><p class="sub">${L<2?"For organization staff. Your email, then approve on your phone.":"You're logged in."}</p>
+ ${L===0?`<label class="f">Email<input type="email" value="jess.park@example.com"></label><div class="actions"><button class="btn pri" data-a="lg1">Continue</button></div>`:
+  L===1?`<div class="hand"><div style="font-size:54px" aria-hidden="true">📱</div><div><b>Approve on your phone</b><p class="muted" style="margin:4px 0 10px">We sent a prompt to the Fannet app on Jess's phone. Tap Approve there. The phone stays the key to your account.</p>
+   <button class="btn" data-a="lg2">Demo: approve on my phone</button><p class="muted" style="margin-top:10px">Phone lost? <button class="link" data-a="toast" data-m="Recovery by email and mobile code, then a new ID check on the new phone">Recover your account</button></p></div></div>`:
+  `<div class="note ok">Approved on Jess's phone.</div><div class="actions"><a class="btn grn" href="fannet-club-desk.html">Open the control panel</a></div>`}
+ ${L===0?appBox():""}`}};
+function render(){document.querySelectorAll(".tab").forEach(b=>b.dataset.tab===tab?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+ document.querySelectorAll("[data-scn]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.scn===scn));
+ if(tab==="login"){$("#rail").innerHTML=`<li class="on"><span class="d">1</span>Log in</li>`;$("#view").innerHTML=V.login();return}
+ const f=flow(),i=f.findIndex(x=>x[0]===S.step);
+ $("#rail").innerHTML=f.map(([k,t],j)=>`<li class="${j<i?"done":j===i?"on":""}"><span class="d">${j<i?"✓":j+1}</span>${t}</li>`).join("");
+ $("#view").innerHTML=V[S.step]()}
+document.addEventListener("click",e=>{const sc=e.target.closest("[data-scn]");if(sc){reset(sc.dataset.scn);return}
+ const tb=e.target.closest("[data-tab]");if(tb){tab=tb.dataset.tab;S.login=0;render();return}
+ const el=e.target.closest("[data-a]");if(!el||el.disabled)return;const a=el.dataset.a,v=el.dataset.v,d=SCN[scn]||SCN.club;
+ if(a==="back")back();
+ else if(a==="next")next();
+ else if(a==="toast")toast(el.dataset.m);
+ else if(a==="send"){S.email=$("#em").value.trim();S.phone=$("#ph").value.trim();if(!/^\S+@\S+\.\S+$/.test(S.email)){toast("Add a valid email address.");return}S.codeSent=true;render();toast("Code sent to "+S.email)}
+ else if(a==="fill"){S.code="482913";render()}
+ else if(a==="acct")go("type");
+ else if(a==="type"){if(S.type!==v){S.sports=[];S.lvl=v==="club"?"club":v==="commission"?"pro":""}S.type=v;render()}
+ else if(a==="lvl"){if(S.lvl!==v)S.sports=[];S.lvl=v;render()}
+ else if(a==="sp"){const i=S.sports.indexOf(v);i<0?S.sports.push(v):S.sports.splice(i,1);render()}
+ else if(a==="sim"){S.phone2=1;render();[2,3,4].forEach((n,k)=>setTimeout(()=>{if(S.step!=="verify")return;S.phone2=n;render();if(n===4)toast("Verified on your phone")},900*(k+1)))}
+ else if(a==="demo"){S.org.name=S.type===scn?d.org:{club:"Southbank Sunday FC",league:"Metro Futsal Association",commission:"Southern Combat Commission",federation:"Pacific Futsal Federation"}[S.type];render()}
+ else if(a==="mkorg"){S.org.name=$("#cn").value.trim();S.org.city=$("#cc").value.trim();S.org.pos=$("#cp").value.trim();if(!S.org.name){toast("Add the name.");return}next()}
+ else if(a==="lg1"){S.login=1;render()}
+ else if(a==="lg2"){S.login=2;render()}});
+document.addEventListener("input",e=>{if(e.target.id==="cn"){S.org.name=e.target.value;const k=$("#site");if(k)k.textContent=(slug(S.org.name)||"your-club")+".fannet.club"}
+ if(e.target.closest(".code")){const ins=[...document.querySelectorAll(".code input")];S.code=ins.map(i=>i.value).join("");const n=ins.indexOf(e.target);if(e.target.value&&ins[n+1])ins[n+1].focus();const b=document.querySelector('[data-a="acct"]');if(b)b.disabled=S.code.length!==6}});
+reset("club");
+})();
+</script>
+</body>
+</html>

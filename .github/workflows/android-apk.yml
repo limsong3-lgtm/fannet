@@ -1,0 +1,53 @@
+name: Android APK
+
+on:
+  push:
+    branches: [android-apk]
+    paths: ["android/**", ".github/workflows/android-apk.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build debug APK
+        run: gradle -p android assembleDebug --no-daemon --stacktrace
+
+      - name: Name the APK
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/fannet-gamma.apk
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fannet-gamma-apk
+          path: out/fannet-gamma.apk
+
+      - name: Publish to the "android-latest" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTE="Fannet Gamma test build from ${GITHUB_SHA::7} ($(date -u +%Y-%m-%d)). Install on an Android phone: download, open, allow installing from this source."
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest out/fannet-gamma.apk --clobber
+            gh release edit android-latest --notes "$NOTE"
+          else
+            gh release create android-latest out/fannet-gamma.apk --title "Fannet Gamma (Android test build)" --notes "$NOTE" --prerelease --target "$GITHUB_SHA"
+          fi
