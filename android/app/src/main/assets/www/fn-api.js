@@ -179,7 +179,9 @@ window.FN_LIVE_INSTALL = function (A) {
       if (n) { saveAuto(); refreshResults(); }
     } catch (e) { console.warn("Fannet Hangul names:", e); }
   }
-  const idLabel = x => { const c = x.live; if (KO && HG[c]) return esc(HG[c]); if (KO && HGAUTO[c]) return esc(HGAUTO[c]); return esc(x.fid); };
+  // under the name: the Korean-script name in Korean mode (never the Fannet ID there), the Fannet ID in English
+  const idLabel = x => { const c = x.live; if (KO) return esc(HG[c] || HGAUTO[c] || ""); return esc(x.fid); };
+  const subj = (...parts) => parts.filter(Boolean).join(" · ");
   async function loadPerson(code) {
     if (LOADING[code]) return; LOADING[code] = 1;
     try {
@@ -218,7 +220,7 @@ window.FN_LIVE_INSTALL = function (A) {
   }
   const kv = (a, v) => `<div class="kv"><span>${a}</span><b>${esc(String(v))}</b></div>`;
   const src = () => `<div class="meta" style="margin:12px 2px 0;font-size:12px">${STATE.mode === "blocked" ? `<b style="color:#b42318">Could not reach the Fannet database from this page.</b> ${esc(STATE.err)}` : "Live from the Fannet master database (read-only)."}</div>`;
-  const loadingScreen = (title, x) => `${navbar(title)}${hHead(x, x.live ? idLabel(x) : esc(x.fid))}<div class="card meta" style="margin-top:10px">${STATE.mode === "blocked" ? "Could not load records." : "Loading real records…"}</div>${src()}`;
+  const loadingScreen = (title, x) => `${navbar(title)}${hHead(x, x.live ? idLabel(x) : (KO ? "" : esc(x.fid)))}<div class="card meta" style="margin-top:10px">${STATE.mode === "blocked" ? "Could not load records." : "Loading real records…"}</div>${src()}`;
   const methodText = (b, R) => {
     const m = b.method || "";
     const stop = b.rd && /KO|RTD|TD|DQ/.test(m);
@@ -270,7 +272,7 @@ window.FN_LIVE_INSTALL = function (A) {
     const list = A.hFilter === "all" ? B : B.filter(b => resFor(b, me) === A.hFilter);
     const w = p.w ?? 0, l = p.l ?? 0, d = p.d ?? 0, ko = p.ko ?? 0, div = (B.find(b => b.div) || {}).div || "";
     return `${navbar("Fight history")}
-      ${hHead(x, `${idLabel(x)} · Pro Boxing${div ? " · " + esc(div) : ""}`)}
+      ${hHead(x, subj(idLabel(x), "Pro Boxing", esc(div)))}
       <div class="srec" style="margin-top:10px"><div><b class="res-w">${w}</b><span>Wins</span></div><div><b class="res-l">${l}</b><span>Losses</span></div><div><b class="res-d">${d}</b><span>Draws</span></div><div><b>${ko}</b><span>KOs</span></div></div>
       <div class="card" style="margin-top:10px;padding-block:4px">${[["Bouts", B.length], [KO ? "승률/KO율" : "Win / KO rate", (w + l + d) ? `${Math.round(w / (w + l + d) * 100)}% / ${w ? Math.round(ko / w * 100) + "%" : "–"}` : "–"],
         ["Current streak", form(played, me)], ["Last fight", played[0] ? hDate(played[0].date) : "–"], ["Nationality", esc(x.where || "Not listed")]]
@@ -284,7 +286,7 @@ window.FN_LIVE_INSTALL = function (A) {
   function official(x, fwd) {
     const L = OFFBOUTS[x.live] || [], roles = {}; L.forEach(([r]) => roles[r] = (roles[r] || 0) + 1);
     const p = PEOPLE[x.live] || {};
-    return `${navbar(x.role)}${hHead(x, `${idLabel(x)} · ${Object.entries(roles).map(([r, n]) => `${r} ${n}`).join(" · ") || x.role}`)}
+    return `${navbar(x.role)}${hHead(x, subj(idLabel(x), Object.entries(roles).map(([r, n]) => `${r} ${n}`).join(" · ") || x.role))}
       <div class="card" style="margin-top:10px;padding-block:4px">${kv("Nationality", x.where || "Not listed")}${kv("Bouts officiated", p.bouts_officiated ?? L.length)}</div>
       <div class="h2">Bouts officiated${L.length >= 300 ? " (latest 300)" : ""}</div><div class="card" style="padding-block:4px">${L.map(([r, b]) => `<div class="kv"><span><b style="font-weight:700">${esc(pn(b.a) || "–")} vs ${esc(pn(b.b) || "–")}</b><br><small class="muted">${esc(b.ev.event_name || [b.ev.venue, b.ev.city].filter(Boolean).join(", "))} · ${b.date ? hDate(b.date) : ""}${b.method ? " · " + esc(b.method) : ""}</small></span><b>${r}</b></div>`).join("") || `<div class="meta" style="padding:8px 0">No bouts on record.</div>`}</div>${src()}${fwd}`;
   }
@@ -476,16 +478,18 @@ window.FN_LIVE_INSTALL = function (A) {
       const back = `<div class="navbar"><button class="icon-btn" data-fnov="back" aria-label="Back">${(A.navbar("").match(/<svg[\s\S]*?<\/svg>/) || ["‹"])[0]}</button><h1>${KO ? "경기 이력" : "Fight history"}</h1><div></div></div>`;
       if (it.demo) {
         const [w, l, d] = String(it.rec || "0-0-0").split("-");
-        return `${back}${hHead({ name: it.name, role: "Fighter" }, `${esc(it.div || "")}${it.from ? " · " + esc(it.from) : ""}`)}
+        const loc = KO && window.fnLocalName ? window.fnLocalName(it.name, "ko") : "";
+        return `${back}${hHead({ name: it.name, role: "Fighter" }, subj(esc(loc), esc(KO ? (DIVKO_[it.div] || it.div || "") : it.div || ""), esc(it.from || "")))}
           <div class="srec" style="margin-top:10px"><div><b class="res-w">${w || 0}</b><span>${KO ? "승리" : "Wins"}</span></div><div><b class="res-l">${l || 0}</b><span>${KO ? "패" : "Losses"}</span></div><div><b class="res-d">${d || 0}</b><span>${KO ? "무승부" : "Draws"}</span></div><div><b>${it.ko ?? 0}</b><span>KO</span></div></div>
           <div class="card meta" style="margin-top:12px">${KO ? "데모 선수입니다. Fannet 데이터베이스에 경기 기록이 없습니다." : "Demo fighter. There are no fight records for this person in the Fannet database."}</div>`;
       }
       const me = it.code, p = PEOPLE[me] || {};
-      if (LOADING["ov:" + me] !== 2) return `${back}${hHead({ name: it.name, role: "Fighter" }, esc(me))}<div class="card meta" style="margin-top:10px">${KO ? "실제 기록 불러오는 중…" : "Loading real records…"}</div>`;
+      if (LOADING["ov:" + me] !== 2) return `${back}${hHead({ name: it.name, role: "Fighter" }, KO ? esc(HG[me] || HGAUTO[me] || "") : esc(me))}<div class="card meta" style="margin-top:10px">${KO ? "실제 기록 불러오는 중…" : "Loading real records…"}</div>`;
       const B = (BOUTS[me] || []).filter(b => b.status !== "cancelled"), played = B.filter(b => b.status === "played");
       const w = p.w ?? 0, l = p.l ?? 0, d = p.d ?? 0, ko = p.ko ?? 0, div = (B.find(b => b.div) || {}).div || "";
-      const nm = (KO && HG[me]) || p.display_name || it.name;
-      return `${back}${hHead({ name: nm, role: "Fighter" }, `${KO && HG[me] ? esc(p.display_name) : esc(me)} · ${esc(KO ? (DIVKO_[div] || div) : div)}`)}
+      const nm = p.display_name || it.name, loc = HG[me] || HGAUTO[me] || "";
+      if (KO && !loc && !AUTO_ASKED.has(me)) autoHangul([me]).then(() => { if (STACK.length && STACK[STACK.length - 1].code === me) draw(); });
+      return `${back}${hHead({ name: nm, role: "Fighter" }, subj(KO ? esc(loc) : esc(me), esc(KO ? (DIVKO_[div] || div) : div)))}
         <div class="srec" style="margin-top:10px"><div><b class="res-w">${w}</b><span>${KO ? "승리" : "Wins"}</span></div><div><b class="res-l">${l}</b><span>${KO ? "패" : "Losses"}</span></div><div><b class="res-d">${d}</b><span>${KO ? "무승부" : "Draws"}</span></div><div><b>${ko}</b><span>KO</span></div></div>
         <div class="card" style="margin-top:10px;padding-block:4px">${[[KO ? "경기" : "Bouts", B.length], [KO ? "승률/KO율" : "Win / KO rate", (w + l + d) ? `${Math.round(w / (w + l + d) * 100)}% / ${w ? Math.round(ko / w * 100) + "%" : "–"}` : "–"],
           [KO ? "현재 연속 기록" : "Current streak", form(played, me)], [KO ? "최근 경기" : "Last fight", played[0] ? hDate(played[0].date) : "–"], [KO ? "국적" : "Nationality", esc(cname(p.nationality) || "–")]].map(([a, v]) => `<div class="kv"><span>${a}</span><b>${v}</b></div>`).join("")}</div>
@@ -514,6 +518,31 @@ window.FN_LIVE_INSTALL = function (A) {
       if (inOv) { const x = t.closest("[data-fnx]"); ev.stopPropagation(); if (x) { const i = +x.getAttribute("data-fnx"); OPEN.has(i) ? OPEN.delete(i) : OPEN.add(i); draw(); } }
     }, true);
   }
+  // ---------- Korean mode: English dates, times and units left in the screens, written the Korean way ----------
+  function installKoDates() {
+    const MON = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+    const WD = { mon: "월", tue: "화", wed: "수", thu: "목", fri: "금", sat: "토", sun: "일" };
+    const M = "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?", W = "(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*";  // matched ignoring case
+    const mo = x => MON[x.slice(0, 3).toLowerCase()], wd = x => WD[x.slice(0, 3).toLowerCase()];
+    const hm = (h, m, ap) => { ap = ap.toLowerCase(); return `${ap === "am" ? "오전" : "오후"} ${+h}${m ? ":" + m : "시"}`; };
+    const RULES = [
+      [new RegExp("\\b" + W + ",? (\\d{1,2}) " + M + "(?:,? (\\d{4}))?", "gi"), (a, w, d, m, y) => `${y ? y + "년 " : ""}${mo(m)}월 ${+d}일 (${wd(w)})`],
+      [new RegExp("\\b(\\d{1,2}) ?[–-] ?(\\d{1,2}) " + M + "(?: (\\d{4}))?", "gi"), (a, d1, d2, m, y) => `${y ? y + "년 " : ""}${mo(m)}월 ${+d1}–${+d2}일`],
+      [new RegExp("\\b(\\d{1,2}) " + M + "(?:,? (\\d{4}))?\\b", "gi"), (a, d, m, y) => `${y ? y + "년 " : ""}${mo(m)}월 ${+d}일`],
+      [new RegExp("\\b" + M + " (\\d{1,2}),? (\\d{4})\\b", "gi"), (a, m, d, y) => `${y}년 ${mo(m)}월 ${+d}일`],
+      [new RegExp("\\b" + M + " (\\d{4})\\b", "gi"), (a, m, y) => `${y}년 ${mo(m)}월`],
+      [/\b(\d{1,2}):(\d{2}) ?(am|pm)\b/gi, (a, h, m, ap) => hm(h, m, ap)],
+      [/\b(\d{1,2}) ?(am|pm)\b/gi, (a, h, ap) => hm(h, "", ap)],
+      [/(\d+) ?min\b/g, "$1분"], [/(\d+) rds\b/g, "$1라운드"], [/(\d+) days?\b/g, "$1일"], [/(\d+) weeks?\b/g, "$1주"],
+      [/(\d+)d ago\b/g, "$1일 전"], [/(\d+)m ago\b/g, "$1분 전"], [/\b[Kk]ick-off\b/g, "킥오프"], [/(오[전후] [\d:시]+) to (오[전후])/g, "$1 ~ $2"], [/\bDue\b/g, "마감"], [/(\d+)w ago\b/g, "$1주 전"], [/(\d+)h ago\b/g, "$1시간 전"], [/\bexpires\b/g, "만료"], [/\bdue\b/g, "마감"]];
+    const fix = n => { const v = n.nodeValue; if (!v || !/[A-Za-z]/.test(v)) return; const el = n.parentElement; if (!el || el.closest("script,style,textarea,input,[data-noi18n],.fn-pl")) return;
+      let t = v; RULES.forEach(([re, f]) => { t = t.replace(re, f); }); if (t !== v) n.nodeValue = t; };
+    const walk = r => { if (!r) return; if (r.nodeType === 3) return fix(r); const tw = document.createTreeWalker(r, 4); let x; const a = []; while ((x = tw.nextNode())) a.push(x); a.forEach(fix); };
+    const root = document.getElementById("phone") || document.body;
+    let pend = false;
+    new MutationObserver(() => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; walk(root); }); }).observe(root, { childList: true, subtree: true, characterData: true });
+    walk(root);
+  }
   const DIVKO_ = { "Super Bantamweight": "슈퍼 밴텀급", "Featherweight": "페더급", "Bantamweight": "밴텀급", "Flyweight": "플라이급", "Super Flyweight": "슈퍼 플라이급", "Super Featherweight": "슈퍼 페더급", "Lightweight": "라이트급", "Light Flyweight": "라이트 플라이급", "Super Lightweight": "슈퍼 라이트급", "Welterweight": "웰터급", "Minimumweight": "미니멈급", "Super Welterweight": "슈퍼 웰터급", "Middleweight": "미들급", "Super Middleweight": "슈퍼 미들급", "Light Heavyweight": "라이트 헤비급", "Heavyweight": "헤비급", "Cruiserweight": "크루저급" };
   const orig = A.orig;
   const live = function () {
@@ -536,5 +565,6 @@ window.FN_LIVE_INSTALL = function (A) {
   try { installPromoter(); } catch (e) { console.warn("Fannet promoter data:", e); }
   try { installFanEvents(); } catch (e) { console.warn("Fannet fan events:", e); }
   try { installProfileLinks(); } catch (e) { console.warn("Fannet profile links:", e); }
+  try { if (KO) installKoDates(); } catch (e) { console.warn("Fannet Korean dates:", e); }
   return live;
 };

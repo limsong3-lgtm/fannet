@@ -70,7 +70,8 @@ body{background:var(--stage);color:var(--stage-fg);font-family:var(--body);font-
 .muted{color:var(--ink-3);font-size:13.5px}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .stack{display:flex;flex-direction:column;gap:10px}
-.pill{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:12.5px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.ev-en{display:block;font-size:13px;font-weight:600;color:var(--ink-3,#6b7280);margin-top:2px;line-height:1.25}
+.pill{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:15px;padding:5px 12px;border-radius:999px;white-space:nowrap}
 .p-draft{background:var(--fill);color:var(--ink-2)}
 .p-review{background:var(--amber-soft);color:var(--amber)}
 .p-ok{background:var(--green-soft);color:var(--green)}
@@ -1338,6 +1339,7 @@ create(){
   return `${navbar(ed?"Edit event":"Create event")}
   ${ed?(orig.status!=="draft"?`<div class="alert a-warn" style="margin-bottom:12px">${isSanctioned(orig)?"This event is sanctioned.":orig.status==="review"?"This card is with the commission.":"This card has been through the commission."} You can still change anything. Any change other than the purse currency takes the event back to <b>Draft</b>${isSanctioned(orig)?" and removes the Sanctioned label":""}, and everyone involved is notified. Resubmit it for sanction afterwards.</div>`:""):`<div class="step">Step 1 of 3 · Event details</div>`}
   <div class="field"><label for="ce-name">Event name</label><input class="input" id="ce-name" placeholder="e.g. Pacific Fight Night 2" value="${esc(e.name)}"></div>
+  <div class="field"><label for="ce-name-en">Event name in English (optional)</label><input class="input" id="ce-name-en" lang="en" placeholder="e.g. Seoul Fight Night" value="${esc(e.nameEn||"")}"><span class="hint">Shown under the event name, for fighters and fans abroad.</span></div>
   <div class="two"><div class="field"><label for="ce-date">Date</label><input class="input" type="date" id="ce-date" min="${orig&&orig.date<minEvDate()?orig.date:minEvDate()}" value="${e.date}"></div><div class="field"><label for="ce-time">Start time</label><input class="input" type="time" id="ce-time" value="${e.time}"></div></div>
   <div style="margin:-6px 0 10px">${ceDateHint(e,orig)}</div>
   <div class="field"><label for="ce-venue">Venue</label>${(()=>{if(!e.vid&&e.venue){const m=vFromText(e.venue);if(m){e.vid=m.id;e.venue=vLabel(m)}}const v=e.vid&&vById(e.vid);return v?`<div class="vsel"><span class="vpin">${I.pin||"📍"}</span><span class="vtx"><b>${esc(v.name)}</b><small>${esc(v.city)}, ${esc(v.ctry)}</small></span><button class="btn btn-line btn-sm" data-act="ce-vclear">Change</button></div>`:`<div style="position:relative"><input class="input" id="ce-venue" placeholder="Search venues" autocomplete="off" value="" style="padding-left:40px"><span style="position:absolute;left:12px;top:12px;width:20px;height:20px;color:var(--ink-3)">${I.search}</span></div><div id="ce-vres">${venueResults("")}</div>`})()}</div>
@@ -1358,7 +1360,7 @@ event(){
   const [lbl,cls]=eventStatus(e);
   const rej=e.bouts.filter(b=>b.state==="rejected").length, edited=e.status==="decided"&&(e.changed||e.bouts.some(b=>b.state==="draft"));
   const canSubmit=e.status==="draft"||rej>0||edited;
-  return `${navbar(esc(e.name))}
+  return `${navbar(esc(e.name)+(e.nameEn?`<small class="ev-en" data-noi18n>${esc(e.nameEn)}</small>`:""))}
   <div class="card" style="background:var(--fill);border:0">
    <div class="row"><span class="pill ${cls}">${lbl}</span><span class="muted">${e.bouts.length} bouts</span></div>
    <div class="meta" style="margin-top:8px">${fmtDate(e.date,e.time)}<br>${esc(e.venue)}</div>
@@ -1588,7 +1590,7 @@ function profileCard(){const p=S.profile,row=(k,v,ph)=>`<div class="kv"><span>${
   ${row("Trading name",S.promoter)}${row("Registered name",p.company)}${row("Native name",p.companyNative,"None added")}${row("Registration",p.reg)}${row("Address",p.caddr)}${row("Promoter licence",S.me.licence+" · since "+S.me.since)}</div>`}
 function eventRow(e){CUR=e.cur||"AUD";
   const [lbl,cls]=eventStatus(e);
-  return `<div class="card tap" data-act="nav" data-s="event" data-e="${e.id}" tabindex="0"><div class="row"><div class="title">${esc(e.name)}</div><span class="pill ${cls}">${lbl}</span></div><div class="meta">${fmtDate(e.date)} · ${esc(e.venue.split(",")[0])}${e.market?` · <span class="mkt-on">In Openings</span>`:""}</div><div class="row" style="margin-top:6px"><span class="muted">${e.bouts.length} bouts · ${e.sports.join(", ")}</span><span style="font-weight:700;font-variant-numeric:tabular-nums">${money(eventPurse(e).t)}<span class="muted" style="font-weight:600"> purse</span></span></div></div>`;
+  return `<div class="card tap" data-act="nav" data-s="event" data-e="${e.id}" tabindex="0"><div class="row"><div class="title">${esc(e.name)}${e.nameEn?`<small class="ev-en" data-noi18n>${esc(e.nameEn)}</small>`:""}</div><span class="pill ${cls}">${lbl}</span></div><div class="meta">${fmtDate(e.date)} · ${esc(e.venue.split(",")[0])}${e.market?` · <span class="mkt-on">In Openings</span>`:""}</div><div class="row" style="margin-top:6px"><span class="muted">${e.bouts.length} bouts · ${e.sports.join(", ")}</span><span style="font-weight:700;font-variant-numeric:tabular-nums">${money(eventPurse(e).t)}<span class="muted" style="font-weight:600"> purse</span></span></div></div>`;
 }
 
 
@@ -1615,7 +1617,7 @@ function render(){
 function bindInputs(){
   const s=cur().s;
   if(s==="create"){
-    const m={"ce-name":"name","ce-date":"date","ce-time":"time"};
+    const m={"ce-name":"name","ce-name-en":"nameEn","ce-date":"date","ce-time":"time"};
     {const vq=document.getElementById("ce-venue");vq&&vq.addEventListener("input",()=>{document.getElementById("ce-vres").innerHTML=venueResults(vq.value)})}
     {const cs=document.getElementById("ce-cur");cs&&cs.addEventListener("change",()=>{newEvent.cur=cs.value;CUR=cs.value})}
     Object.entries(m).forEach(([id,k])=>{const el=document.getElementById(id);el&&el.addEventListener("input",()=>{newEvent[k]=el.value;if(id==="ce-date"){const h=document.getElementById("ce-date-h");if(h)h.outerHTML=ceDateHint(newEvent,newEvent.editing&&ev(newEvent.editing))}})});
@@ -1706,7 +1708,7 @@ const A={
  nview:d=>{newsView=d.v;const y=view.scrollTop;render();view.scrollTop=y},
 
  back, nav:d=>go(d.s,{e:d.e}), root:d=>root(d.s),
- evedit:d=>{const e=ev(d.e);newEvent={editing:e.id,cur:e.cur||"AUD",market:e.market,name:e.name,date:e.date,time:e.time,venue:e.venue,sports:[...e.sports],comm:{...e.comm}};go("create")},
+ evedit:d=>{const e=ev(d.e);newEvent={editing:e.id,cur:e.cur||"AUD",market:e.market,name:e.name,nameEn:e.nameEn||"",date:e.date,time:e.time,venue:e.venue,sports:[...e.sports],comm:{...e.comm}};go("create")},
  "ce-sport":d=>{const e=newEvent,i=e.sports.indexOf(d.v);if(i>=0&&e.editing){const n=ev(e.editing).bouts.filter(b=>b.sport===d.v).length;if(n){toast(`${d.v} has ${n} bout${n>1?"s":""} on the card. Delete ${n>1?"them":"it"} first.`);return}}if(i>=0){if(e.sports.length>1||!e.editing)e.sports.splice(i,1)}else{e.sports.push(d.v);e.comm[d.v]=S.home[d.v]||COMMISSIONS[d.v][0]}render()},
  "me-sport":d=>{const i=S.mySports.indexOf(d.v);if(i>=0){if(S.mySports.length>1)S.mySports.splice(i,1);else{toast("Keep at least one sport.");return}}else S.mySports.push(d.v);newEvent=null;render()},
  "ce-vpick":d=>{const v=vById(d.v);newEvent.vid=v.id;newEvent.venue=vLabel(v);const y=view.scrollTop;render();view.scrollTop=y},
@@ -1721,7 +1723,7 @@ const A={
   const near=vNear(name);if(near.length&&!d.force){document.getElementById("vn-warn").innerHTML=`<div class="alert a-warn" style="margin:4px 0 8px">This looks like a venue that's already on Fannet:<div style="margin-top:6px">${near.slice(0,3).map(v=>`<button class="btn btn-line btn-sm" style="width:100%;margin-top:6px;justify-content:flex-start" data-act="ce-vpickc" data-v="${v.id}">Use ${esc(vLabel(v))}</button>`).join("")}</div><button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px" data-act="ce-vnewok" data-force="1">No, it's a different venue</button></div>`;return}
   const v={id:"v"+(VENUES.length+1),name,city,ctry:g("vn-ctry"),addr:g("vn-addr")};VENUES.push(v);newEvent.vid=v.id;newEvent.venue=vLabel(v);closeSheet();const y=view.scrollTop;render();view.scrollTop=y;toast(name+" added and picked.")},
  "ce-vpickc":d=>{closeSheet();A["ce-vpick"](d)},
- "ce-save":(d={})=>{const e=newEvent;if(evDateBad(e,e.editing&&ev(e.editing))){toast(`An event must be at least ${MINDAYS} days away. The earliest date is ${fmtDate(minEvDate()).replace(/, \d{4}$/,"")}.`);document.getElementById("ce-date").focus();return}if(!e.name.trim()){toast("Add an event name first.");document.getElementById("ce-name").focus();return}if(!e.vid){toast("Pick a venue from the list, or add it as a new venue.");const q=document.getElementById("ce-venue");q&&q.focus();return}if(!e.sports.length){toast("Pick at least one sport for this card.");return}
+ "ce-save":(d={})=>{const e=newEvent;{const a=document.getElementById("ce-name"),b=document.getElementById("ce-name-en");if(a)e.name=a.value;if(b)e.nameEn=b.value}if(evDateBad(e,e.editing&&ev(e.editing))){toast(`An event must be at least ${MINDAYS} days away. The earliest date is ${fmtDate(minEvDate()).replace(/, \d{4}$/,"")}.`);document.getElementById("ce-date").focus();return}if(!e.name.trim()){toast("Add an event name first.");document.getElementById("ce-name").focus();return}if(!e.vid){toast("Pick a venue from the list, or add it as a new venue.");const q=document.getElementById("ce-venue");q&&q.focus();return}if(!e.sports.length){toast("Pick at least one sport for this card.");return}
    if(e.editing){const o=ev(e.editing);const key=x=>JSON.stringify([x.name.trim(),x.date,x.time,x.venue.trim(),[...x.sports].sort(),x.sports.map(s=>x.comm[s]).sort()]);const big=key(o)!==key(e);
      const rev=big&&o.status!=="draft",who=evParticipants(o);
      if(rev&&!d.ok){showSheet(`<div class="title" style="font-size:19px">Take ${esc(o.name)} back to draft?</div>
@@ -1733,10 +1735,10 @@ const A={
       <div class="muted" style="text-align:right;font-size:12px" id="ce-msg-n">0 / 200</div>
       <button class="btn btn-red" style="margin-top:10px" data-act="ce-save" data-ok="1">Save and notify everyone</button>
       <button class="btn btn-line" style="margin-top:8px" data-act="close">Keep editing</button>`);{const t=document.getElementById("ce-msg");t.addEventListener("input",()=>document.getElementById("ce-msg-n").textContent=t.value.length+" / 200")}return}
-     const note=(document.getElementById("ce-msg")?.value||"").trim();if(rev)o.lastNotice={note,at:TODAY,n:who.length};closeSheet();Object.assign(o,{cur:e.cur,market:e.market,name:e.name.trim(),date:e.date,time:e.time,venue:e.venue.trim(),sports:[...e.sports],comm:{...e.comm}});
+     const note=(document.getElementById("ce-msg")?.value||"").trim();if(rev)o.lastNotice={note,at:TODAY,n:who.length};closeSheet();Object.assign(o,{cur:e.cur,market:e.market,name:e.name.trim(),nameEn:(e.nameEn||"").trim(),date:e.date,time:e.time,venue:e.venue.trim(),sports:[...e.sports],comm:{...e.comm}});
      if(rev){o.status="draft";o.changed=false;o.bouts.forEach(b=>{b.state="draft";delete b.note})}
      newEvent=null;back();toast(rev?`${o.name} is back to draft. ${who.length} people notified${note?" with your message":""}.`:"Event updated.");return}
-   const id="e"+Date.now();S.events.unshift({id,cur:e.cur,market:e.market,name:e.name.trim(),date:e.date,time:e.time,venue:e.venue.trim(),sports:[...e.sports],comm:{...e.comm},status:"draft",bouts:[]});newEvent=null;nav=[{s:"events"},{s:"event",e:id}];render();toast("Event created. Add your first bout.")},
+   const id="e"+Date.now();S.events.unshift({id,cur:e.cur,market:e.market,name:e.name.trim(),nameEn:(e.nameEn||"").trim(),date:e.date,time:e.time,venue:e.venue.trim(),sports:[...e.sports],comm:{...e.comm},status:"draft",bouts:[]});newEvent=null;nav=[{s:"events"},{s:"event",e:id}];render();toast("Event created. Add your first bout.")},
  newbout:d=>startBout(d.e),
  editbout:d=>startBout(d.e,ev(d.e).bouts.find(b=>b.id===d.b)),
  delbout:d=>{const e=ev(d.e);showSheet(`<div class="title" style="margin-bottom:6px">Delete this bout?</div><div class="meta" style="margin-bottom:14px">It comes off the ${esc(e.name)} card. You can add it again later.</div><button class="btn btn-red" data-act="delyes" data-e="${d.e}" data-b="${d.b}">Delete bout</button><button class="btn btn-ghost" style="margin-top:8px" data-act="close">Keep it</button>`)},
