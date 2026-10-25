@@ -410,6 +410,111 @@ window.FN_LIVE_INSTALL = function (A) {
       return i < 0 ? html : html.slice(0, i + mark.length) + `<div style="margin-bottom:14px">${sec}</div>` + html.slice(i + mark.length);
     };
   }
+  // ---------- Boxer names anywhere in the app open a profile on top, and Back returns to the same spot ----------
+  // The profile is a layer over the phone screen: the screen underneath (its scroll position, an open
+  // sheet) is left untouched, so closing the layer puts the organizer exactly where they were.
+  function installProfileLinks() {
+    const phone = document.getElementById("phone") || document.querySelector(".phone"); if (!phone) return;
+    const st = document.createElement("style");
+    st.textContent = ".fn-pl{text-decoration:underline;text-decoration-color:rgba(0,0,0,.28);text-underline-offset:3px;cursor:pointer}" +
+      "#fn-ov{position:absolute;inset:0;z-index:70;background:var(--white,#fff);display:flex;flex-direction:column}#fn-ov .fn-ovv{flex:1;overflow:auto;padding:0 16px 24px}";
+    document.head.appendChild(st);
+    // who can be linked: fighters the app knows (database fighters in pick lists, and the demo fighters with their card info)
+    let MAP = {}, RE = null, SIG = "";
+    function buildMap() {
+      const m = {};
+      const add = (name, v) => { if (name && typeof name === "string" && name.length > 3 && !m[name]) m[name] = v; };
+      (A.ROSTER || []).forEach(f => add(f.n, f.code ? { code: f.code } : { demo: true, rec: `${f.w}-${f.l}-${f.dr}`, ko: f.ko, div: A.DIV && A.DIV[f.d] ? A.DIV[f.d][0] : "", from: f.cty }));
+      [A.FX, A.MFX].forEach(X => X && Object.values(X).forEach(f => f && f.rec && add(f.name, { demo: true, rec: f.rec, ko: f.ko, div: f.div, from: f.from })));
+      (DIR.people || []).forEach(x => { if (x.real || x.role !== "Fighter" || !x.rec) return; add(x.name, { demo: true, rec: x.rec, ko: x.ko, div: x.div, from: x.where }); });
+      const sig = Object.keys(m).length + ":" + (A.ROSTER || []).length;
+      if (sig === SIG) return; SIG = sig; MAP = m;
+      const keys = Object.keys(m).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      RE = keys.length ? new RegExp("(^|[^A-Za-z\u00C0-\u024F가-힣])(" + keys.join("|") + ")(?![A-Za-z\u00C0-\u024F가-힣])") : null;
+    }
+    const SKIP = /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|BUTTON|H1)$/;
+    const skip = el => { for (; el && el !== phone; el = el.parentElement) { if (SKIP.test(el.tagName) || el.id === "fn-ov" || (el.classList && (el.classList.contains("fn-pl") || el.classList.contains("navbar") || el.classList.contains("chip") || el.classList.contains("tabs")))) return true; } return false; };
+    function wrap(n) {
+      if (!RE || !n.nodeValue) return; const p = n.parentElement; if (!p || skip(p)) return;
+      // a name the name-variant script already wrapped
+      const ln = p.closest && p.closest(".fn-ln"); if (ln) { const k = ln.getAttribute("data-n"); if (MAP[k] && !ln.classList.contains("fn-pl")) { ln.classList.add("fn-pl"); ln.setAttribute("data-pn", k); } return; }
+      const mm = n.nodeValue.match(RE); if (!mm) return;
+      const at = mm.index + mm[1].length, rest = n.splitText(at), after = rest.splitText(mm[2].length);
+      const w = document.createElement("span"); w.className = "fn-pl"; w.setAttribute("data-pn", mm[2]); w.setAttribute("role", "link");
+      p.insertBefore(w, rest); w.appendChild(rest); wrap(after);
+    }
+    function scan(root) {
+      buildMap(); if (!RE || !root) return;
+      if (root.nodeType === 3) return wrap(root);
+      if (root.nodeType !== 1 || skip(root)) return;
+      root.querySelectorAll && root.querySelectorAll(".fn-ln:not(.fn-pl)").forEach(el => { const k = el.getAttribute("data-n"); if (MAP[k]) { el.classList.add("fn-pl"); el.setAttribute("data-pn", k); } });
+      const tw = document.createTreeWalker(root, 4), a = []; let t; while ((t = tw.nextNode())) a.push(t); a.forEach(wrap);
+    }
+    let pend = false;
+    new MutationObserver(() => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; scan(document.getElementById("view")); scan(document.getElementById("sheetHost")); }); })
+      .observe(phone, { childList: true, subtree: true, characterData: true });
+    setTimeout(() => { scan(document.getElementById("view")); scan(document.getElementById("sheetHost")); }, 300);
+
+    // the layer
+    const STACK = []; let OPEN = new Set();
+    function close() { STACK.pop(); OPEN = new Set(); if (STACK.length) draw(); else { const o = document.getElementById("fn-ov"); if (o) o.remove(); } }
+    function open(item) { STACK.push(item); OPEN = new Set(); draw(true); if (item.code && LOADING["ov:" + item.code] !== 2) ovLoad(item.code); }
+    async function ovLoad(code) {
+      if (LOADING["ov:" + code]) return; LOADING["ov:" + code] = 1;
+      try {
+        CODE(code); const r = (await rpc("fn_app_person", { code })) || {};
+        if (r.person) { PEOPLE[code] = Object.assign(PEOPLE[code] || {}, r.person); NAMES[code] = r.person.display_name; }
+        KONAME[code] = r.ko_name || ""; const h = r.ko_name && pickHangul(r.ko_name); if (h) HG[code] = h;
+        BOUTS[code] = (r.bouts || []).map(boutObj);
+        (r.opponents || []).forEach(x => { PEOPLE[x.person_code] = Object.assign(PEOPLE[x.person_code] || {}, x); NAMES[x.person_code] = x.display_name; });
+        (r.bouts || []).forEach(b => { if (!EVOFF[b.event_code]) EVOFF[b.event_code] = []; });
+        const seen = new Set(); (r.event_officials || []).forEach(o => { const k = o.event_code + o.role + o.name; if (seen.has(k)) return; seen.add(k); (EVOFF[o.event_code] = EVOFF[o.event_code] || []).push(o); });
+      } catch (e) { fail(e); } finally { LOADING["ov:" + code] = 2; draw(); }
+    }
+    const pnm = c => esc((KO && HG[c]) || pn(c) || (KO ? "연결 안 된 상대" : "Opponent not linked"));
+    function body(it) {
+      const back = `<div class="navbar"><button class="icon-btn" data-fnov="back" aria-label="Back">${(A.navbar("").match(/<svg[\s\S]*?<\/svg>/) || ["‹"])[0]}</button><h1>${KO ? "경기 이력" : "Fight history"}</h1><div></div></div>`;
+      if (it.demo) {
+        const [w, l, d] = String(it.rec || "0-0-0").split("-");
+        return `${back}${hHead({ name: it.name, role: "Fighter" }, `${esc(it.div || "")}${it.from ? " · " + esc(it.from) : ""}`)}
+          <div class="srec" style="margin-top:10px"><div><b class="res-w">${w || 0}</b><span>${KO ? "승리" : "Wins"}</span></div><div><b class="res-l">${l || 0}</b><span>${KO ? "패" : "Losses"}</span></div><div><b class="res-d">${d || 0}</b><span>${KO ? "무승부" : "Draws"}</span></div><div><b>${it.ko ?? 0}</b><span>KO</span></div></div>
+          <div class="card meta" style="margin-top:12px">${KO ? "데모 선수입니다. Fannet 데이터베이스에 경기 기록이 없습니다." : "Demo fighter. There are no fight records for this person in the Fannet database."}</div>`;
+      }
+      const me = it.code, p = PEOPLE[me] || {};
+      if (LOADING["ov:" + me] !== 2) return `${back}${hHead({ name: it.name, role: "Fighter" }, esc(me))}<div class="card meta" style="margin-top:10px">${KO ? "실제 기록 불러오는 중…" : "Loading real records…"}</div>`;
+      const B = (BOUTS[me] || []).filter(b => b.status !== "cancelled"), played = B.filter(b => b.status === "played");
+      const w = p.w ?? 0, l = p.l ?? 0, d = p.d ?? 0, ko = p.ko ?? 0, div = (B.find(b => b.div) || {}).div || "";
+      const nm = (KO && HG[me]) || p.display_name || it.name;
+      return `${back}${hHead({ name: nm, role: "Fighter" }, `${KO && HG[me] ? esc(p.display_name) : esc(me)} · ${esc(KO ? (DIVKO_[div] || div) : div)}`)}
+        <div class="srec" style="margin-top:10px"><div><b class="res-w">${w}</b><span>${KO ? "승리" : "Wins"}</span></div><div><b class="res-l">${l}</b><span>${KO ? "패" : "Losses"}</span></div><div><b class="res-d">${d}</b><span>${KO ? "무승부" : "Draws"}</span></div><div><b>${ko}</b><span>KO</span></div></div>
+        <div class="card" style="margin-top:10px;padding-block:4px">${[[KO ? "경기" : "Bouts", B.length], [KO ? "승률/KO율" : "Win / KO rate", (w + l + d) ? `${Math.round(w / (w + l + d) * 100)}% / ${w ? Math.round(ko / w * 100) + "%" : "–"}` : "–"],
+          [KO ? "현재 연속 기록" : "Current streak", form(played, me)], [KO ? "최근 경기" : "Last fight", played[0] ? hDate(played[0].date) : "–"], [KO ? "국적" : "Nationality", esc(cname(p.nationality) || "–")]].map(([a, v]) => `<div class="kv"><span>${a}</span><b>${v}</b></div>`).join("")}</div>
+        <div class="h2">${KO ? "경기 기록" : "Bouts"}</div>
+        <div style="display:grid;gap:8px">${B.map((b, i) => { const o = OPEN.has(i), R = resFor(b, me), opp = b.a === me ? b.b : b.a, e = b.ev, orec = recOf(opp);
+          return `<div class="card hrow tap ${o ? "open" : ""}" data-fnx="${i}"><div class="hres res-${(R || "d").toLowerCase()}">${R ? (KO ? ({ W: "승", L: "패", D: "무", NC: "무효" })[R] : R) : "–"}</div><div style="min-width:0"><div class="row"><div class="title" style="font-size:15.5px">vs ${opp && PEOPLE[opp] ? `<span class="fn-pl" data-pcode="${esc(opp)}">${pnm(opp)}</span>` : pnm(opp)}</div><span class="muted" style="font-size:13px;font-weight:600">${b.date ? hDate(b.date) : ""}</span></div><div class="meta">${orec ? wld(orec) + " · " : ""}${esc(b.method || "–")}${b.rd && /KO|RTD/.test(b.method || "") ? " R" + b.rd : ""}</div><div class="meta" style="font-size:13px">${esc([e.venue, e.city].filter(Boolean).join(", "))}${e.commission ? " · " + esc(e.commission) : ""}</div></div>${o ? expand(b, me) : ""}</div>`; }).join("") || `<div class="card meta">${KO ? "경기 기록이 없습니다." : "No bouts on record."}</div>`}</div>`;
+    }
+    function draw(fresh) {
+      let o = document.getElementById("fn-ov");
+      if (!o) { o = document.createElement("div"); o.id = "fn-ov"; const stb = phone.querySelector(".status"); o.innerHTML = (stb ? stb.outerHTML : "") + `<div class="fn-ovv view"></div>`; phone.appendChild(o); }
+      const v = o.querySelector(".fn-ovv"), y = fresh ? 0 : v.scrollTop; v.innerHTML = body(STACK[STACK.length - 1]); v.scrollTop = y;
+    }
+    // clicks: capture phase, before the page's own handlers
+    document.addEventListener("click", ev => {
+      const t = ev.target; if (!t || !t.closest) return;
+      const inOv = t.closest("#fn-ov");
+      const b = t.closest("[data-fnov]"); if (b) { ev.preventDefault(); ev.stopPropagation(); close(); return; }
+      const pl = t.closest(".fn-pl");
+      if (pl) {
+        ev.preventDefault(); ev.stopPropagation();
+        const code = pl.getAttribute("data-pcode");
+        if (code) return open({ code, name: PEOPLE[code] && PEOPLE[code].display_name || pl.textContent });
+        buildMap(); const k = pl.getAttribute("data-pn"), v = MAP[k]; if (!v) return;
+        return open(Object.assign({ name: k }, v));
+      }
+      if (inOv) { const x = t.closest("[data-fnx]"); ev.stopPropagation(); if (x) { const i = +x.getAttribute("data-fnx"); OPEN.has(i) ? OPEN.delete(i) : OPEN.add(i); draw(); } }
+    }, true);
+  }
+  const DIVKO_ = { "Super Bantamweight": "슈퍼 밴텀급", "Featherweight": "페더급", "Bantamweight": "밴텀급", "Flyweight": "플라이급", "Super Flyweight": "슈퍼 플라이급", "Super Featherweight": "슈퍼 페더급", "Lightweight": "라이트급", "Light Flyweight": "라이트 플라이급", "Super Lightweight": "슈퍼 라이트급", "Welterweight": "웰터급", "Minimumweight": "미니멈급", "Super Welterweight": "슈퍼 웰터급", "Middleweight": "미들급", "Super Middleweight": "슈퍼 미들급", "Light Heavyweight": "라이트 헤비급", "Heavyweight": "헤비급", "Cruiserweight": "크루저급" };
   const orig = A.orig;
   const live = function () {
     const nav = A.nav, top = nav[nav.length - 1] || {}, x = LIVE[top.id];
@@ -430,5 +535,6 @@ window.FN_LIVE_INSTALL = function (A) {
   window.FN_LIVE = { STATE, PEOPLE, BOUTS, OFFBOUTS, EVB, LIVE, sql, rpc };
   try { installPromoter(); } catch (e) { console.warn("Fannet promoter data:", e); }
   try { installFanEvents(); } catch (e) { console.warn("Fannet fan events:", e); }
+  try { installProfileLinks(); } catch (e) { console.warn("Fannet profile links:", e); }
   return live;
 };
