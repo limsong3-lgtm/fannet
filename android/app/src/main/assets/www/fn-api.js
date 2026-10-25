@@ -526,6 +526,9 @@ window.FN_LIVE_INSTALL = function (A) {
         ev.preventDefault(); ev.stopPropagation();
         const code = pl.getAttribute("data-pcode");
         if (code) return open({ code, name: PEOPLE[code] && PEOPLE[code].display_name || pl.textContent });
+        // same names are common (two 김민수): on a pick-list card, use that card's own fighter
+        const card = pl.closest("[data-f]"), rf = card && A.ROSTER && A.ROSTER.find(f => f.id === +card.getAttribute("data-f"));
+        if (rf && rf.code) return open({ code: rf.code, name: rf.en || rf.n });
         buildMap(); const k = pl.getAttribute("data-pn"), v = MAP[k]; if (!v) return;
         return open(Object.assign({ name: k }, v));
       }
