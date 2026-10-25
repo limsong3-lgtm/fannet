@@ -753,6 +753,12 @@ function venueResults(q){const past=vPast(),pid=past.map(x=>x.v.id);
  return `<div class="vsec">${hits.length?"Matching venues":"No matching venue"}</div>${hits.length?`<div class="vlist">${hits.map(v=>vRow(v,q,pid.includes(v.id)?'<span class="vpast">Past venue</span>':"")).join("")}</div>`:""}
  ${near&&hits.length?`<div class="vnote">Pick the venue from the list if it's there, so every event at that venue is linked to the same place.</div>`:""}
  <button class="vadd" data-act="ce-vnew" data-q="${esc(q.trim())}">${I.plus||"+"} Add “${esc(q.trim())}” as a new venue</button>`}
+// every country for a new venue: the value stays the English name, the label is in the app language; common ones first
+const CTRY_CODES="AD AE AF AG AI AL AM AO AR AS AT AU AW AZ BA BB BD BE BF BG BH BI BJ BM BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CK CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FO FR GA GB GD GE GH GI GL GM GN GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MO MR MT MU MV MW MX MY MZ NA NC NE NG NI NL NO NP NR NZ OM PA PE PF PG PH PK PL PR PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW".split(" "),CTRY_TOP=["KR","JP","PH","TH","VN","CN","TW","HK","MN","KZ","UZ","ID","MY","KH","AU","NZ","US"];
+function ctryOptions(){const L=document.documentElement.lang==="ko"?"ko":"en";let en,lo;try{en=new Intl.DisplayNames(["en"],{type:"region"});lo=new Intl.DisplayNames([L],{type:"region"})}catch(e){return ["Australia","Philippines","Thailand","Vietnam","Cambodia","New Zealand"].map(c=>`<option>${c}</option>`).join("")}
+ const fix={KR:L==="ko"?"한국":"South Korea"},nm=c=>fix[c]||lo.of(c),row=c=>`<option value="${esc(c==="KR"?"South Korea":en.of(c))}" data-noi18n>${esc(nm(c))}</option>`;
+ const rest=CTRY_CODES.filter(c=>!CTRY_TOP.includes(c)).sort((a,b)=>nm(a).localeCompare(nm(b),L));
+ return CTRY_TOP.map(row).join("")+`<option disabled>──────────</option>`+rest.map(row).join("")}
 const MINDAYS=7; // Lim, 2026-10-04: an event can't be created less than 1 week away
 const minEvDate=()=>addDays(MINDAYS);
 const evDateBad=(e,orig)=>e.date<minEvDate()&&!(orig&&orig.date===e.date);
@@ -1576,7 +1582,8 @@ function mpSheet(){const m=MPd,ch=(act,v,on,l)=>`<button class="chip ${on?"on":"
 let MGEO="all";
 const CTY={AU:"Australia",PH:"Philippines",JP:"Japan",VN:"Vietnam",ID:"Indonesia",IN:"India",KH:"Cambodia",MY:"Malaysia",NZ:"New Zealand",TH:"Thailand"};
 const GEOS=["Australia","New Zealand","Philippines","Japan","Vietnam","Thailand","Cambodia","Malaysia","Indonesia","India"];
-const evCountry=e=>/Manila|Pasay|Quezon|Cebu/.test(e.venue)?"Philippines":/Bangkok/.test(e.venue)?"Thailand":"Australia";
+const evCountry=e=>{const v=VENUES.find(x=>e.venue&&(vLabel(x)===e.venue||e.venue.startsWith(x.name+",")));return v&&v.ctry?v.ctry:evCountry0(e)};
+const evCountry0=e=>/Manila|Pasay|Quezon|Cebu/.test(e.venue)?"Philippines":/Bangkok/.test(e.venue)?"Thailand":"Australia";
 function mkListing(l){const f=F(l.f);return `<div class="card"><div class="row"><span style="color:var(--green);font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase">${esc(l.byRole)}</span><span class="muted">${l.posted}</span></div>
   <div class="fighter" style="grid-template-columns:44px 1fr;margin-top:6px"><div class="ava" style="background:${col(f)}">${ini(f)}</div><div style="min-width:0"><div class="title" style="font-size:16px">${esc(f.n)}</div><div class="meta" style="margin-top:1px">${rec(f)} · ${divName(f.d)} · open to ±1 · ${f.cty}</div></div></div>
   <div class="tagrow" style="margin-top:8px">${NOPP.has(f.id)?'<span class="tag pp-red">No passport · may not travel</span>':""}<span class="tag">${esc(l.avail)}</span>${l.regions.map(r=>`<span class="tag">${r}</span>`).join("")}${l.look.map(r=>`<span class="tag" style="background:var(--blue-soft);color:var(--blue)">${r}</span>`).join("")}</div>
@@ -1715,7 +1722,7 @@ const A={
  "ce-vclear":()=>{newEvent.vid=null;newEvent.venue="";const y=view.scrollTop;render();view.scrollTop=y;const q=document.getElementById("ce-venue");q&&q.focus()},
  "ce-vnew":d=>{showSheet(`<div class="title" style="font-size:19px">Add a new venue</div><div class="meta">Check the list first. A venue added twice under slightly different names splits its event history.</div>
   <div class="field" style="margin-top:12px"><label for="vn-name">Venue name</label><input class="input" id="vn-name" value="${esc(d.q||"")}"></div>
-  <div class="two"><div class="field"><label for="vn-city">Suburb or city</label><input class="input" id="vn-city" placeholder="e.g. Richmond VIC"></div><div class="field"><label for="vn-ctry">Country</label><select class="input" id="vn-ctry">${["Australia","Philippines","Thailand","Vietnam","Cambodia","New Zealand"].map(c=>`<option>${c}</option>`).join("")}</select></div></div>
+  <div class="two"><div class="field"><label for="vn-city">Suburb or city</label><input class="input" id="vn-city" placeholder="e.g. Richmond VIC"></div><div class="field"><label for="vn-ctry">Country</label><select class="input" id="vn-ctry">${ctryOptions()}</select></div></div>
   <div class="field"><label for="vn-addr">Street address</label><input class="input" id="vn-addr" placeholder="e.g. 300 Dynon Road"></div>
   <div id="vn-warn"></div>
   <button class="btn btn-red" style="margin-top:6px" data-act="ce-vnewok">Add venue</button>`)},

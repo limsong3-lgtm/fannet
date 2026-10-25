@@ -322,6 +322,8 @@ window.FN_LIVE_INSTALL = function (A) {
     A.COMMISSIONS["Pro Boxing"] = COMMS.map(commText);   // only real sanctioning bodies for boxing
     try { const S0 = A.S; if (S0 && S0.home && !A.COMMISSIONS["Pro Boxing"].includes(S0.home["Pro Boxing"])) S0.home["Pro Boxing"] = A.COMMISSIONS["Pro Boxing"][0]; } catch (e) { }
   }
+  let REGION_EN = null; try { REGION_EN = new Intl.DisplayNames(["en"], { type: "region" }); } catch (e) { }
+  const enCountry = c => { if (!c) return ""; if (c === "KR") return "South Korea"; try { return (REGION_EN && REGION_EN.of(c)) || c; } catch (e) { return c; } };
   function installPromoter() {
     if (!A.SCREENS || !A.ROSTER || !A.VENUES || !A.DIV) return;
     const { SCREENS, ROSTER, VENUES, DIV } = A;
@@ -337,7 +339,7 @@ window.FN_LIVE_INSTALL = function (A) {
         try {
           const rows = (await rpc("fn_app_venues", { q })) || []; let n = 0;
           rows.forEach(v => { const id = "V" + v.venue_code; if (VENUES.some(x => x.id === id)) return;
-            VENUES.unshift({ id, name: v.name, city: v.city || "", ctry: cname(v.country) || "", real: true }); n++; });
+            VENUES.unshift({ id, name: v.name, city: v.city || "", ctry: enCountry(v.country), real: true }); n++; });
           const cur = document.getElementById("ce-venue");
           if (n && cur) { const e2 = new Event("input", { bubbles: true }); e2.fnReplay = true; cur.dispatchEvent(e2); }
         } catch (e) { fail(e); }
@@ -348,15 +350,25 @@ window.FN_LIVE_INSTALL = function (A) {
     const RF = {}, BYKEY = {}, LOADK = {}; let NEXT = 500000;
     const realF = (r, g) => {                     // one pick-list entry per fighter and gender list
       const key = r.person_code + ":" + g; if (RF[key]) return RF[key];
-      const name = KO && r.ko_name && pickHangul(r.ko_name) ? pickHangul(r.ko_name) : r.display_name;
-      const f = { id: NEXT++, n: name, g, d: DIVI[r.division], w: +r.w || 0, l: +r.l || 0, dr: +r.d || 0, ko: +r.ko || 0, cty: r.nationality || "", mgr: null, kyc: true, code: r.person_code, real: true };
+      const name = KO && r.ko_name && pickHangul(r.ko_name) ? pickHangul(r.ko_name) : showName(r);
+      const f = { id: NEXT++, n: name, en: r.display_name, g, d: DIVI[r.division], w: +r.w || 0, l: +r.l || 0, dr: +r.d || 0, ko: +r.ko || 0, cty: r.nationality || "", mgr: null, kyc: true, code: r.person_code, real: true };
       RF[key] = f; ROSTER.push(f); PEOPLE[r.person_code] = Object.assign(PEOPLE[r.person_code] || {}, r); return f;
     };
+    // Korean mode: Korean boxers show their Korean name; when none is recorded, Claude writes one (kept on this device)
+    const showName = r => KO && (HG[r.person_code] || HGAUTO[r.person_code]) || r.display_name;
+    async function koNames(rows) {
+      if (!KO) return;
+      rows.forEach(r => { const h = r.ko_name && pickHangul(r.ko_name); if (h) HG[r.person_code] = h; });
+      const need = rows.filter(r => (r.nationality === "KR" || r.nationality === "KP") && !HG[r.person_code] && !HGAUTO[r.person_code]).map(r => r.person_code);
+      for (let i = 0; i < need.length; i += 30) await autoHangul(need.slice(i, i + 30));
+      let n = 0; Object.values(RF).forEach(f => { const r = { person_code: f.code, display_name: f.en || f.n }; const nm = showName(r); if (nm !== f.n) { f.en = f.en || f.n; f.n = nm; n++; } });
+      if (n && A.nav && (A.nav[A.nav.length - 1] || {}).s === "pick") { const y = (document.getElementById("view") || {}).scrollTop; rerender(); const v = document.getElementById("view"); if (v) v.scrollTop = y; }
+    }
     const fits = (r, g) => r.division in DIVI && (!r.gender || (g === "F" ? r.gender === "female" : r.gender === "male"));
     async function loadPick(g, d) {
       const k = g + ":" + d; if (LOADK[k]) return; LOADK[k] = 1;
       const names = DIV.map(x => x[0]).filter((_, i) => Math.abs(i - d) <= 2);
-      try { const rows = (await rpc("fn_app_fighters", { divs: names, q: null })) || []; BYKEY[k] = rows.filter(r => fits(r, g)).map(r => realF(r, g)); }
+      try { const rows = (await rpc("fn_app_fighters", { divs: names, q: null })) || []; BYKEY[k] = rows.filter(r => fits(r, g)).map(r => realF(r, g)); koNames(rows); }
       catch (e) { fail(e); BYKEY[k] = []; } finally { LOADK[k] = 2; rerender(); }
     }
     const SEARCHED = {};
@@ -383,6 +395,7 @@ window.FN_LIVE_INSTALL = function (A) {
         const dr = A.draft; if (!dr) return; const k = dr.g + ":" + dr.d;
         try {
           const rows = (await rpc("fn_app_fighters", { divs: null, q })) || [];
+          koNames(rows);
           const add = rows.filter(r => r.division in DIVI && (!r.gender || (dr.g === "F" ? r.gender === "female" : r.gender === "male"))).map(r => realF(r, dr.g));
           const have = new Set((BYKEY[k] || []).concat(SEARCHED[k] || []).map(f => f.id)), fresh = add.filter(f => !have.has(f.id));
           if (!fresh.length) return;
