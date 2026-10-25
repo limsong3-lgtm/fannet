@@ -43,7 +43,7 @@ window.FN_LIVE_INSTALL = function (A) {
   // Supabase connector; in the Android app (or any normal web page) through the public REST API.
   const REST = "https://uapwpuhmosnprpzmkqrf.supabase.co/rest/v1/rpc/";
   const KEY = "sb_publishable_DVPE2G8S5tbGhne__5Bb7g__fOG7xzP"; // public, read-only key
-  const lit = v => "'" + String(v).replace(/'/g, "''") + "'";
+  const lit = v => v === null || v === undefined ? "null" : Array.isArray(v) ? "array[" + v.map(lit).join(",") + "]::text[]" : "'" + String(v).replace(/'/g, "''") + "'";
   async function rpc(fn, args) {
     await mcpReady;
     if (MCP) { const rows = await sql(`select public.${fn}(${Object.values(args).map(lit).join(",")}) as r`); return rows[0] && rows[0].r; }
@@ -311,6 +311,105 @@ window.FN_LIVE_INSTALL = function (A) {
       <div class="card" style="margin-top:10px;padding-block:4px">${kv("Region", x.where || "Not listed")}${kv("Sports", x.sports)}${kv(KO ? "기록된 이벤트" : "Events on record", x.extra.replace(/ events on record$/, ""))}</div>
       <div class="h2">Recent events${evs.length >= 40 ? " (latest 40)" : ""}</div><div style="display:grid;gap:8px">${evs.map(e => `<div class="card tap" data-act="sdet" data-k="events" data-id="${e.id}" tabindex="0"><div class="title" style="font-size:15.5px">${esc(e.name)}</div><div class="meta">${e.date ? hDate(e.date) : ""}${e.venue && e.venue !== e.name ? " · " + esc(e.venue) : ""}${e.bouts ? " · " + e.bouts + " bouts" : ""}</div></div>`).join("") || `<div class="card meta">No events on record.</div>`}</div>${src()}${fwd}`;
   }
+  // ---------- Promoter: real commissions, venues and fighters when creating an event ----------
+  let COMMS = null;
+  const commText = c => c.short_name && c.name ? `${c.short_name} · ${KO && FN_KO_COMM[c.name] ? FN_KO_COMM[c.name] : c.name}` : (c.name || c.short_name || c.org_code);
+  const FN_KO_COMM = { "Korea Boxing Commission": "한국권투위원회", "Japan Boxing Commission": "일본 복싱 커미션", "Games and Amusements Board": "필리핀 경기오락커미션" };
+  function applyComms() {
+    if (!A.COMMISSIONS || !COMMS || !COMMS.length) return;
+    A.COMMISSIONS["Pro Boxing"] = COMMS.map(commText);   // only real sanctioning bodies for boxing
+    try { const S0 = A.S; if (S0 && S0.home && !A.COMMISSIONS["Pro Boxing"].includes(S0.home["Pro Boxing"])) S0.home["Pro Boxing"] = A.COMMISSIONS["Pro Boxing"][0]; } catch (e) { }
+  }
+  function installPromoter() {
+    if (!A.SCREENS || !A.ROSTER || !A.VENUES || !A.DIV) return;
+    const { SCREENS, ROSTER, VENUES, DIV } = A;
+    // commissions (the MCP path loads them here; the REST path in the connection check)
+    mcpReady.then(m => { if (m) rpc("fn_app_commissions", {}).then(r => { COMMS = r || []; applyComms(); }).catch(fail); });
+    // venues: search the database as the promoter types, add the matches to the venue list
+    let vt = null, vLast = "";
+    document.addEventListener("input", ev => {
+      const el = ev.target; if (!el || el.id !== "ce-venue" || ev.fnReplay) return;
+      const q = el.value.trim(); clearTimeout(vt); if (q.length < 2 || q === vLast) return;
+      vt = setTimeout(async () => {
+        vLast = q;
+        try {
+          const rows = (await rpc("fn_app_venues", { q })) || []; let n = 0;
+          rows.forEach(v => { const id = "V" + v.venue_code; if (VENUES.some(x => x.id === id)) return;
+            VENUES.unshift({ id, name: v.name, city: v.city || "", ctry: cname(v.country) || "", real: true }); n++; });
+          const cur = document.getElementById("ce-venue");
+          if (n && cur) { const e2 = new Event("input", { bubbles: true }); e2.fnReplay = true; cur.dispatchEvent(e2); }
+        } catch (e) { fail(e); }
+      }, 250);
+    }, true);
+    // fighters: the Pick corner list shows fighters from the database for the bout's division
+    const DIVI = {}; DIV.forEach((d, i) => DIVI[d[0]] = i);
+    const RF = {}, BYKEY = {}, LOADK = {}; let NEXT = 500000;
+    const realF = (r, g) => {                     // one pick-list entry per fighter and gender list
+      const key = r.person_code + ":" + g; if (RF[key]) return RF[key];
+      const name = KO && r.ko_name && pickHangul(r.ko_name) ? pickHangul(r.ko_name) : r.display_name;
+      const f = { id: NEXT++, n: name, g, d: DIVI[r.division], w: +r.w || 0, l: +r.l || 0, dr: +r.d || 0, ko: +r.ko || 0, cty: r.nationality || "", mgr: null, kyc: true, code: r.person_code, real: true };
+      RF[key] = f; ROSTER.push(f); PEOPLE[r.person_code] = Object.assign(PEOPLE[r.person_code] || {}, r); return f;
+    };
+    const fits = (r, g) => r.division in DIVI && (!r.gender || (g === "F" ? r.gender === "female" : r.gender === "male"));
+    async function loadPick(g, d) {
+      const k = g + ":" + d; if (LOADK[k]) return; LOADK[k] = 1;
+      const names = DIV.map(x => x[0]).filter((_, i) => Math.abs(i - d) <= 2);
+      try { const rows = (await rpc("fn_app_fighters", { divs: names, q: null })) || []; BYKEY[k] = rows.filter(r => fits(r, g)).map(r => realF(r, g)); }
+      catch (e) { fail(e); BYKEY[k] = []; } finally { LOADK[k] = 2; rerender(); }
+    }
+    const SEARCHED = {};
+    const origPick = SCREENS.pick;
+    SCREENS.pick = function () {
+      const dr = A.draft; if (!dr) return origPick.apply(this, arguments);
+      const k = dr.g + ":" + dr.d; if (LOADK[k] !== 2) loadPick(dr.g, dr.d);
+      const list = (BYKEY[k] || []).concat(SEARCHED[k] || []);
+      const keep = ROSTER.splice(0, ROSTER.length);              // show only database fighters while drawing the list
+      const other = dr.red && keep.find(f => f.id === dr.red), other2 = dr.blue && keep.find(f => f.id === dr.blue);
+      [...new Set(list.concat([other, other2].filter(Boolean)))].forEach(f => ROSTER.push(f));
+      let html;
+      try { html = origPick.apply(this, arguments); } finally { ROSTER.splice(0, ROSTER.length); keep.forEach(f => ROSTER.push(f)); }
+      const note = LOADK[k] !== 2 ? (KO ? "Fannet 데이터베이스에서 선수를 불러오는 중…" : "Loading fighters from the Fannet database…")
+        : (KO ? "Fannet 데이터베이스의 선수입니다. 최근 경기 순. 이름으로 검색하면 전체 데이터베이스에서 찾습니다." : "Fighters from the Fannet database, most recently active first. Search by name to look across the whole database.");
+      return html.replace(/(<div class="alert a-info"[^>]*>)/, `<div class="alert a-info" style="margin-bottom:10px">${note}</div>$1`);
+    };
+    // name search in Pick reaches the whole database (any division)
+    let pt = null;
+    document.addEventListener("input", ev => {
+      const el = ev.target; if (!el || el.id !== "pk-q" || ev.fnReplay) return;
+      const q = el.value.trim(); clearTimeout(pt); if (q.length < 2 && !/[^\x00-\x7f]/.test(q)) return;
+      pt = setTimeout(async () => {
+        const dr = A.draft; if (!dr) return; const k = dr.g + ":" + dr.d;
+        try {
+          const rows = (await rpc("fn_app_fighters", { divs: null, q })) || [];
+          const add = rows.filter(r => r.division in DIVI && (!r.gender || (dr.g === "F" ? r.gender === "female" : r.gender === "male"))).map(r => realF(r, dr.g));
+          const have = new Set((BYKEY[k] || []).concat(SEARCHED[k] || []).map(f => f.id)), fresh = add.filter(f => !have.has(f.id));
+          if (!fresh.length) return;
+          SEARCHED[k] = (SEARCHED[k] || []).concat(fresh);
+          rerender();
+          const n = document.getElementById("pk-q");
+          if (n) { n.value = q; n.focus(); const e2 = new Event("input", { bubbles: true }); e2.fnReplay = true; n.dispatchEvent(e2); }
+        } catch (e) { fail(e); }
+      }, 300);
+    }, true);
+  }
+  // ---------- Fan: real events at the top of the Events tab ----------
+  let FEED = null, FEEDL = 0;
+  function installFanEvents() {
+    if (!A.SCREENS || !A.SCREENS.events || A.ROSTER) return;     // the fan app only (the promoter app has its own events)
+    const origEv = A.SCREENS.events;
+    A.SCREENS.events = function () {
+      const html = origEv.apply(this, arguments);
+      if (!FEEDL) { FEEDL = 1; rpc("fn_app_events_feed", {}).then(r => { FEED = r || { upcoming: [], recent: [] }; (FEED.upcoming || []).concat(FEED.recent || []).forEach(eventObj); }).catch(e => { fail(e); FEED = { upcoming: [], recent: [] }; }).finally(() => { FEEDL = 2; rerender(); }); }
+      const card = e => { const x = eventObj(e); return `<div class="card tap" data-act="sdet" data-k="events" data-id="${x.id}" tabindex="0"><div class="row"><span class="pill p-violet">${esc(e.commission || "Pro Boxing")}</span><span class="muted" style="font-size:13px;font-weight:600">${e.starts_on ? hDate(e.starts_on) : ""}</span></div><div class="title" style="margin-top:8px;font-size:17px">${esc(x.name)}</div><div class="meta">${esc(((v => v && v !== x.name ? v : "")([e.venue, e.city].filter(Boolean).join(", ")) || cname(e.country)))} · ${KO ? e.bouts + "경기" : e.bouts + " bout" + (e.bouts == 1 ? "" : "s")}</div></div>`; };
+      const sec = FEEDL !== 2 ? `<div class="card meta">${KO ? "실제 이벤트 불러오는 중…" : "Loading real events…"}</div>`
+        : `${FEED.upcoming.length ? `<div class="h2">${KO ? "예정된 이벤트" : "Upcoming"}</div><div class="stack">${FEED.upcoming.map(card).join("")}</div>` : ""}
+           <div class="h2">${KO ? "최근 결과" : "Recent results"}</div><div class="stack">${FEED.recent.map(card).join("") || `<div class="card meta">${KO ? "이벤트가 없습니다." : "No events."}</div>`}</div>
+           <div class="h2" style="margin-top:18px">${KO ? "팬 펀딩 데모 이벤트" : "Fan funding demo events"}</div>`;
+      const mark = "<h1>Events</h1><div></div></div>";
+      const i = html.indexOf(mark);
+      return i < 0 ? html : html.slice(0, i + mark.length) + `<div style="margin-bottom:14px">${sec}</div>` + html.slice(i + mark.length);
+    };
+  }
   const orig = A.orig;
   const live = function () {
     const nav = A.nav, top = nav[nav.length - 1] || {}, x = LIVE[top.id];
@@ -326,7 +425,10 @@ window.FN_LIVE_INSTALL = function (A) {
     return x.role === "Fighter" ? fighter(x, fwd) : official(x, fwd);
   };
   // connection check, so a blocked network shows up at once
-  mcpReady.then(m => { if (!m) fail(new Error("Live data needs this page to be opened in claude.ai.")); });
-  window.FN_LIVE = { STATE, PEOPLE, BOUTS, OFFBOUTS, EVB, LIVE, sql };
+  // (outside claude.ai the REST API is used, so only warn when that fails too)
+  mcpReady.then(m => { if (!m) rpc("fn_app_commissions", {}).then(r => { STATE.mode = "live"; COMMS = r || []; applyComms(); }).catch(fail); });
+  window.FN_LIVE = { STATE, PEOPLE, BOUTS, OFFBOUTS, EVB, LIVE, sql, rpc };
+  try { installPromoter(); } catch (e) { console.warn("Fannet promoter data:", e); }
+  try { installFanEvents(); } catch (e) { console.warn("Fannet fan events:", e); }
   return live;
 };

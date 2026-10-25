@@ -2475,7 +2475,7 @@ new MutationObserver(phApply).observe(view,{childList:true});
 
 
 /* Fannet live records (fn-api.js): real fighters, events and officials from the Supabase master */
-try{if(window.FN_LIVE_INSTALL){const _live=window.FN_LIVE_INSTALL({DIR,SQ,navbar,hHead,esc,wld,hDate,orig:sdetailScreen,render:()=>render(),sResults:()=>sResults(),get nav(){return nav},get hFilter(){return hFilter},get hOpen(){return hOpen}});if(_live)sdetailScreen=_live}}catch(e){console.error("Fannet live data",e)}
+try{if(window.FN_LIVE_INSTALL){const _live=window.FN_LIVE_INSTALL({DIR,SQ,navbar,hHead,esc,wld,hDate,orig:sdetailScreen,render:()=>render(),sResults:()=>sResults(),SCREENS,ROSTER,VENUES,COMMISSIONS,DIV,get draft(){return draft},get S(){return S},get nav(){return nav},get hFilter(){return hFilter},get hOpen(){return hOpen}});if(_live)sdetailScreen=_live}}catch(e){console.error("Fannet live data",e)}
 })();
 </script>
 
