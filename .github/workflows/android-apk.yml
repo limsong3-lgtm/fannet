@@ -1,9 +1,7 @@
 name: Android APK
 
+# Automatic builds are off (Lim, 2026-10-26). Start a build by hand from the Actions tab if needed.
 on:
-  push:
-    branches: [android-apk]
-    paths: ["android/**", ".github/workflows/android-apk.yml"]
   workflow_dispatch:
 
 permissions:
